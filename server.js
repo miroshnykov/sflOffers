@@ -31,24 +31,28 @@ app.get('/health', (req, res, next) => {
 app.get('/encodeUrl', async (req, res, next) => {
     let response = {}
     // http://localhost:8091/encodeUrl?offerId=1111&campaignId=22222
-    console.log('buffer')
-    let query = req.query
-    response.campaignId = query.campaignId || 0
-    response.offerId = query.offerId || 0
 
-    let obj = {
-        offerId: `${query.offerId}`,
-        campaignId: `${query.campaignId}`
+    try{
+        let query = req.query
+        response.campaignId = query.campaignId || 0
+        response.offerId = query.offerId || 0
+
+        let obj = {
+            offerId: `${query.offerId}`,
+            campaignId: `${query.campaignId}`
+        }
+        let string = JSON.stringify(obj);
+        let encodedString = btoa(string);
+        console.log('encodedString:', encodedString);
+
+
+        response.encodedString = encodedString
+        res.send(response)
+    } catch (e) {
+        response.err = 'error encodeUrl' + JSON.stringify(e)
+        res.send(response)
     }
-    let string = JSON.stringify(obj);
-    const btoa = require('btoa');
 
-    let encodedString = btoa(string);
-    console.log('encodedString:', encodedString);
-
-
-    response.encodedString = encodedString
-    res.send(response)
 
 })
 
@@ -57,65 +61,43 @@ app.get('/decodeUrl', async (req, res, next) => {
     // http://localhost:8091/decodeUrl?campaign=eyJvZmZlcklkIjoiMSIsImNhbXBhaWduSWQiOiI2In0=
     let response = {}
 
-    let query = req.query
-    response.campaign = query.campaign || 0
-
-    let decodedString = atob(query.campaign);
-    response.decodedString = decodedString
     try{
-        response.decodedObj = JSON.parse(decodedString)
+        let query = req.query
+        response.campaign = query.campaign || 0
+
+        let decodedString = atob(query.campaign);
+        response.decodedString = decodedString
+        try {
+            response.decodedObj = JSON.parse(decodedString)
+        } catch (e) {
+            response.decodedObj = 'parse error'
+        }
+
+        res.send(response)
     } catch (e) {
-        response.decodedObj = 'parse error'
+        response.err = 'error decodeUrl' + JSON.stringify(e)
+        res.send(response)
     }
 
-    res.send(response)
 
 })
 
 app.get('/files', async (req, res, next) => {
     let response = {}
 
-    let files = await getLocalFiles('/tmp/recipe/')
-
-    response.files1 = files[0]
-    response.files2 = files[1]
-    res.send(response)
-
-})
-
-
-app.get('/offer', async (req, res, next) => {
-    // let recipeCache = await recipeDb()
-
-    // http://localhost:8091/offer?id=eyJvZmZlcklkIjoiODM4MzgzODM4MzgiLCJscCI6eyJwcm9kMSI6MiwibHAxIjoxMSwicHJvZDIiOjMsImxwMiI6MTJ9fQ==
-    let response = {}
-
-    let query = req.query
-    response.query = query
-    response.id = query.id
-
-    let decodedString = atob(query.id);
-    console.log('decodedString:', decodedString);
-    response.decodedString = decodedString
     try {
-        response.decodedStringParce = JSON.parse(decodedString)
+        let files = await getLocalFiles(config.recipe.folder)
+
+        response.files1 = files[0]
+        response.files2 = files[1]
+        res.send(response)
     } catch (e) {
-        console.log('err parce string')
-        response.decodedStringParce = 'error parce string'
+        response.err = 'error files' + JSON.stringify(e)
+        res.send(response)
     }
 
-    // dimon
-
-    // console.log('recipe:', JSON.stringify(recipeCache.recipe))
-    res.send(response)
 
 })
-
-let clients = []
-const ss = require('socket.io-stream')
-const fs = require('fs')
-
-// const filename = '/tmp/recipe/campaign-2020111620510215308.json.gz';
 
 const getFileSize = (filename) => {
     let stats = fs.statSync(filename);
@@ -125,18 +107,55 @@ const getFileSize = (filename) => {
     return `${fileSizeInMegabytes} MB`;
 }
 
-let folder = '/tmp/recipe/'
+app.get('/forceCreateRecipe', async (req, res, next) => {
+    let response = {}
+    try {
+
+        let files = await getLocalFiles(config.recipe.folder)
+        let file1 = files[0]
+        let file2 = files[1]
+        if (file1) {
+            await deleteJsonFile(file1)
+        }
+        if (file2) {
+            await deleteJsonFile(file2)
+        }
+        await createRecipeCampaign()
+        await createRecipeOffers()
+
+        // let file1Size = await getFileSize(file1)
+        // let file2Size = await getFileSize(file2)
+        // console.log(file1Size)
+        // console.log(file2Size)
+        response.files1 = `${files[0]}`
+        response.files2 = `${files[1]}`
+        response.done = 'recipe created'
+        res.send(response)
+
+    } catch (e) {
+        response.err = 'error recipe' + JSON.stringify(e)
+
+        res.send(response)
+    }
+})
+
+let clients = []
+const ss = require('socket.io-stream')
+const fs = require('fs')
+
+// const filename = '/tmp/recipe/campaign-2020111620510215308.json.gz';
+
 io.on('connection', async (socket) => {
     console.log('client connected');
     socket.on('sendFileCampaign', async () => {
 
-        let files = await getLocalFiles(folder)
+        let files = await getLocalFiles(config.recipe.folder)
 
         console.log('files:', files)
         let file = files[0]
 
         if (!file) {
-            console.log(`no files in folder:${folder}`)
+            console.log(`no files in folder:${config.recipe.folder}`)
             return
         }
 
@@ -150,11 +169,11 @@ io.on('connection', async (socket) => {
 
     socket.on('sendFileOffer', async () => {
 
-        let files = await getLocalFiles(folder)
+        let files = await getLocalFiles(config.recipe.folder)
 
         let file = files[1]
         if (!file) {
-            console.log(`no files in folder:${folder}`)
+            console.log(`no files in folder:${config.recipe.folder}`)
             return
         }
         let stream = ss.createStream();
@@ -192,13 +211,13 @@ setInterval(async () => {
 
     if (!once) {
         console.log('create files campaign and offer')
-        let files = await getLocalFiles(folder)
+        let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]
         let file2 = files[1]
-        if (file1){
+        if (file1) {
             await deleteJsonFile(file1)
         }
-        if (file2){
+        if (file2) {
             await deleteJsonFile(file2)
         }
         await createRecipeCampaign()

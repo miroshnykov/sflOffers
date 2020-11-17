@@ -4,22 +4,21 @@ config.port = 8091
 
 config.env = process.env.NODE_ENV || `production`
 
-config.db = {
-    adcenter: {
-        host: '',
-        user: '',
-        port: 3306,
-        password: '',
-        database: ''
-    },
-    maxmind: {
-        database: ''
-    }
+config.mysql = {
+    host: '',
+    user: '',
+    port: 3306,
+    password: '',
+    database: ''
 }
 
 config.redis = {
     host: '',
     port: 6379
+}
+
+config.recipe = {
+    folder: '/tmp/recipe/'
 }
 
 config.flowRotator = {
