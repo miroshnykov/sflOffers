@@ -121,29 +121,6 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
     }
 })
 
-app.get('/offer', async (req, res, next) => {
-    // let recipeCache = await recipeDb()
-
-    // http://localhost:8091/offer?id=eyJvZmZlcklkIjoiODM4MzgzODM4MzgiLCJscCI6eyJwcm9kMSI6MiwibHAxIjoxMSwicHJvZDIiOjMsImxwMiI6MTJ9fQ==
-    let response = {}
-
-    let query = req.query
-    response.query = query
-    response.id = query.id
-
-    let decodedString = atob(query.id);
-    console.log('decodedString:', decodedString);
-    response.decodedString = decodedString
-    try {
-        response.decodedStringParce = JSON.parse(decodedString)
-    } catch (e) {
-        console.log('err parce string')
-        response.decodedStringParce = 'error parce string'
-    }
-
-    res.send(response)
-})
-
 let clients = []
 const ss = require('socket.io-stream')
 const fs = require('fs')
