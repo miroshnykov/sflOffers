@@ -31,22 +31,28 @@ app.get('/health', (req, res, next) => {
 app.get('/encodeUrl', async (req, res, next) => {
     let response = {}
     // http://localhost:8091/encodeUrl?offerId=1111&campaignId=22222
-    console.log('buffer')
-    let query = req.query
-    response.campaignId = query.campaignId || 0
-    response.offerId = query.offerId || 0
 
-    let obj = {
-        offerId: `${query.offerId}`,
-        campaignId: `${query.campaignId}`
+    try{
+        let query = req.query
+        response.campaignId = query.campaignId || 0
+        response.offerId = query.offerId || 0
+
+        let obj = {
+            offerId: `${query.offerId}`,
+            campaignId: `${query.campaignId}`
+        }
+        let string = JSON.stringify(obj);
+        let encodedString = btoa(string);
+        console.log('encodedString:', encodedString);
+
+
+        response.encodedString = encodedString
+        res.send(response)
+    } catch (e) {
+        response.err = 'error encodeUrl' + JSON.stringify(e)
+        res.send(response)
     }
-    let string = JSON.stringify(obj);
-    let encodedString = btoa(string);
-    console.log('encodedString:', encodedString);
 
-
-    response.encodedString = encodedString
-    res.send(response)
 
 })
 
@@ -55,29 +61,41 @@ app.get('/decodeUrl', async (req, res, next) => {
     // http://localhost:8091/decodeUrl?campaign=eyJvZmZlcklkIjoiMSIsImNhbXBhaWduSWQiOiI2In0=
     let response = {}
 
-    let query = req.query
-    response.campaign = query.campaign || 0
+    try{
+        let query = req.query
+        response.campaign = query.campaign || 0
 
-    let decodedString = atob(query.campaign);
-    response.decodedString = decodedString
-    try {
-        response.decodedObj = JSON.parse(decodedString)
+        let decodedString = atob(query.campaign);
+        response.decodedString = decodedString
+        try {
+            response.decodedObj = JSON.parse(decodedString)
+        } catch (e) {
+            response.decodedObj = 'parse error'
+        }
+
+        res.send(response)
     } catch (e) {
-        response.decodedObj = 'parse error'
+        response.err = 'error decodeUrl' + JSON.stringify(e)
+        res.send(response)
     }
 
-    res.send(response)
 
 })
 
 app.get('/files', async (req, res, next) => {
     let response = {}
 
-    let files = await getLocalFiles(config.recipe.folder)
+    try {
+        let files = await getLocalFiles(config.recipe.folder)
 
-    response.files1 = files[0]
-    response.files2 = files[1]
-    res.send(response)
+        response.files1 = files[0]
+        response.files2 = files[1]
+        res.send(response)
+    } catch (e) {
+        response.err = 'error files' + JSON.stringify(e)
+        res.send(response)
+    }
+
 
 })
 
