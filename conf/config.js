@@ -12,6 +12,10 @@ config.mysql = {
     database: ''
 }
 
+config.encryption = {
+    key: '',
+    iv_length: 0
+}
 config.redis = {
     host: '',
     port: 6379
