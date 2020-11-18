@@ -14,11 +14,7 @@ const {
 
 const {createRecipeCampaign, createRecipeOffers} = require('./recipe/buildfiles')
 const {deleteJsonFile} = require('./lib/zipOffer')
-
-
-const atob = require('atob')
-const btoa = require('btoa')
-
+const {encrypt, decrypt} = require('./lib/encrypt')
 
 const metrics = require('./lib/metrics')
 
@@ -42,30 +38,28 @@ app.get('/encodeUrl', async (req, res, next) => {
             campaignId: `${query.campaignId}`
         }
         let string = JSON.stringify(obj);
-        let encodedString = btoa(string);
-        console.log('encodedString:', encodedString);
 
-
-        response.encodedString = encodedString
+        let encryptData = encrypt(string)
+        console.log('encryptData:',encryptData)
+        response.encryptData = encryptData
         res.send(response)
     } catch (e) {
+        console.log(e)
         response.err = 'error encodeUrl' + JSON.stringify(e)
         res.send(response)
     }
 
-
 })
 
-
 app.get('/decodeUrl', async (req, res, next) => {
-    // http://localhost:8091/decodeUrl?campaign=eyJvZmZlcklkIjoiMSIsImNhbXBhaWduSWQiOiI2In0=
+    // http://localhost:8091/decodeUrl?campaign=415655028459403008171b3b20b12df8:fe6b8dd08c47a5d240747ecb28330b37e76ade3b203f8fb6fa166e1b573372348eb61217d27871856bc30306a57c07b2
     let response = {}
 
     try{
         let query = req.query
         response.campaign = query.campaign || 0
 
-        let decodedString = atob(query.campaign);
+        let decodedString = decrypt(query.campaign)
         response.decodedString = decodedString
         try {
             response.decodedObj = JSON.parse(decodedString)
@@ -151,7 +145,7 @@ io.on('connection', async (socket) => {
 
         let files = await getLocalFiles(config.recipe.folder)
 
-        console.log('files:', files)
+        // console.log('files:', files)
         let file = files[0]
 
         if (!file) {
@@ -231,6 +225,7 @@ setTimeout(async () => {
 
     console.log('read GZIP file')
 
+    return
     //  **************************** READ GZIP FILE
     // let gunzip = zlib.createGunzip();
     // let rstream = fs.createReadStream('/home/miroshnykov/Downloads/offer/2020-11-13/04/20201113043114646788.json.gz');
