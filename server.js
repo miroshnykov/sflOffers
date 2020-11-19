@@ -15,7 +15,7 @@ const {
 const {createRecipeCampaign, createRecipeOffers} = require('./recipe/buildfiles')
 const {deleteJsonFile} = require('./lib/zipOffer')
 const {encrypt, decrypt} = require('./lib/encrypt')
-const {receiveMessage} = require('./lib/sqs')
+const {receiveMessage} = require('./sqs/sqs')
 
 const metrics = require('./lib/metrics')
 
@@ -173,12 +173,12 @@ io.on('connection', async (socket) => {
 
     if (!clients.includes(socket.id)) {
 
-            if (clients.length < LIMIT_CLIENTS) {
-                clients.push(socket.id)
-                console.log(`New client just connected: ${socket.id} `)
-            } else {
-                console.log(`Clients more then ${LIMIT_CLIENTS}`)
-            }
+        if (clients.length < LIMIT_CLIENTS) {
+            clients.push(socket.id)
+            console.log(`New client just connected: ${socket.id} `)
+        } else {
+            console.log(`Clients more then ${LIMIT_CLIENTS}`)
+        }
 
 
     }

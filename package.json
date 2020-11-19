@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js --conf=/home/conf/config.js"
+    "start": "node server.js --conf=/run/secrets/sfl-offers.js"
   },
   "author": "",
   "license": "ISC",
