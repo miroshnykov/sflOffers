@@ -1,5 +1,3 @@
-
-
 stages:
   - init
 # Developer Ticket Build
@@ -201,24 +199,24 @@ Tag Master:
   only:
     - master
   
-# Deploy Image:
-#   stage: master image
-#   before_script:
-#   - IPS=`printenv | grep  "SFL_MANAGER*" | grep "=.*" | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'`
-#   - MANAGER=`echo $IPS | xargs shuf -n1 -e`
-#   - echo "$MANAGER"
-#   # - apt update && apt-get install git openssh-client -y
-#   - eval $(ssh-agent -s)
-#   - mkdir -p ~/.ssh/deployer && touch ~/.ssh/deployer/id_rsa
-#   - echo "$DEPLOYER_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deployer/id_rsa && chmod 600 ~/.ssh/deployer/id_rsa
-#   - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-#   script:
-#     - ssh -o "StrictHostKeyChecking no" -i "~/.ssh/deployer/id_rsa" deployer@$MANAGER "sudo salt-call --retcode-passthrough --hard-crash state.sls smartFlowRotator.container_deploy cache=false pillar='{\"stack\":\"$CI_PROJECT_TITLE\",\"service\":\"$CI_PROJECT_TITLE\", \"release\":\"$RELEASE\" }'"
-#   after_script:
-#     - docker system prune -af
-#     - rm -rf ~/.ssh/deployer/id_rsa
-#   only:
-#     - master
+Deploy Image:
+  stage: master image
+  before_script:
+  - IPS=`printenv | grep  "SFL_MANAGER*" | grep "=.*" | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'`
+  - MANAGER=`echo $IPS | xargs shuf -n1 -e`
+  - echo "$MANAGER"
+  # - apt update && apt-get install git openssh-client -y
+  - eval $(ssh-agent -s)
+  - mkdir -p ~/.ssh/deployer && touch ~/.ssh/deployer/id_rsa
+  - echo "$DEPLOYER_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deployer/id_rsa && chmod 600 ~/.ssh/deployer/id_rsa
+  - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+  script:
+    - ssh -o "StrictHostKeyChecking no" -i "~/.ssh/deployer/id_rsa" deployer@$MANAGER "sudo salt-call --retcode-passthrough --hard-crash state.sls smartFlowRotator.container_deploy cache=false pillar='{\"stack\":\"$CI_PROJECT_TITLE\",\"service\":\"$CI_PROJECT_TITLE\", \"release\":\"$RELEASE\" }'"
+  after_script:
+    - docker system prune -af
+    - rm -rf ~/.ssh/deployer/id_rsa
+  only:
+    - master
 
      
  
