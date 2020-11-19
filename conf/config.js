@@ -29,6 +29,12 @@ config.flowRotator = {
     interval: 1000 * 60 * 15
 }
 
+config.aws = {
+    key: '',
+    access_key: '',
+    region: ''
+}
+
 config.influxdb = {
     host: 'https://influx.surge.systems/influxdb',
     project: 'sfl-offers',

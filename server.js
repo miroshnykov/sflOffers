@@ -15,6 +15,7 @@ const {
 const {createRecipeCampaign, createRecipeOffers} = require('./recipe/buildfiles')
 const {deleteJsonFile} = require('./lib/zipOffer')
 const {encrypt, decrypt} = require('./lib/encrypt')
+const {receiveMessage} = require('./lib/sqs')
 
 const metrics = require('./lib/metrics')
 
@@ -28,7 +29,7 @@ app.get('/encodeUrl', async (req, res, next) => {
     let response = {}
     // http://localhost:8091/encodeUrl?offerId=1111&campaignId=22222
 
-    try{
+    try {
         let query = req.query
         response.campaignId = query.campaignId || 0
         response.offerId = query.offerId || 0
@@ -40,7 +41,7 @@ app.get('/encodeUrl', async (req, res, next) => {
         let string = JSON.stringify(obj);
 
         let encryptData = encrypt(string)
-        console.log('encryptData:',encryptData)
+        console.log('encryptData:', encryptData)
         response.encryptData = encryptData
         res.send(response)
     } catch (e) {
@@ -55,7 +56,7 @@ app.get('/decodeUrl', async (req, res, next) => {
     // http://localhost:8091/decodeUrl?campaign=415655028459403008171b3b20b12df8:fe6b8dd08c47a5d240747ecb28330b37e76ade3b203f8fb6fa166e1b573372348eb61217d27871856bc30306a57c07b2
     let response = {}
 
-    try{
+    try {
         let query = req.query
         response.campaign = query.campaign || 0
 
@@ -87,6 +88,34 @@ app.get('/files', async (req, res, next) => {
         res.send(response)
     } catch (e) {
         response.err = 'error files' + JSON.stringify(e)
+        res.send(response)
+    }
+
+
+})
+
+
+app.get('/sqs', async (req, res, next) => {
+    let response = {}
+    console.log('get sqs ')
+    try {
+
+        let dataQueue = await receiveMessage()
+        if (!dataQueue.Messages) {
+            console.log(`no records from queue ${queueUrl}`)
+            return
+        }
+        let messageArr = []
+        for (const message of dataQueue.Messages) {
+            let messageBody = JSON.parse(message.Body)
+            messageArr.push(JSON.parse(message.Body))
+            console.log(' \n  messageBody:', messageBody)
+        }
+        response.dataQueue = dataQueue
+        response.messageArr = messageArr
+        res.send(response)
+    } catch (e) {
+        response.err = 'error sqs' + JSON.stringify(e)
         res.send(response)
     }
 
@@ -133,6 +162,7 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
     }
 })
 
+const LIMIT_CLIENTS = 60
 let clients = []
 const ss = require('socket.io-stream')
 const fs = require('fs')
@@ -140,7 +170,19 @@ const fs = require('fs')
 // const filename = '/tmp/recipe/campaign-2020111620510215308.json.gz';
 
 io.on('connection', async (socket) => {
-    console.log('client connected');
+
+    if (!clients.includes(socket.id)) {
+
+            if (clients.length < LIMIT_CLIENTS) {
+                clients.push(socket.id)
+                console.log(`New client just connected: ${socket.id} `)
+            } else {
+                console.log(`Clients more then ${LIMIT_CLIENTS}`)
+            }
+
+
+    }
+
     socket.on('sendFileCampaign', async () => {
 
         let files = await getLocalFiles(config.recipe.folder)
@@ -182,15 +224,15 @@ io.on('connection', async (socket) => {
     socket.on('disconnect', () => {
         clients.splice(clients.indexOf(socket.id, 1))
         console.log(`disconnect ${socket.id}, Count of client: ${clients.length} `);
-        console.log(`disconnect clients:`, clients);
+        // console.log(`disconnect clients:`, clients);
         // metrics.influxdb(200, `disconnect`)
     })
 
 })
 
 io.on('connect', async (socket) => {
-    console.log(`Connect ${socket.id}, Clients: ${JSON.stringify(clients)} `);
-    console.log(`Count of clients: ${clients.length} limit 30`)
+    // console.log(`Connect ${socket.id}, Clients: ${JSON.stringify(clients)} `);
+    console.log(`Count of clients: ${clients.length} limit ${LIMIT_CLIENTS}`)
     // metrics.influxdb(200, `clientsCount-${clients.length}`)
 })
 
@@ -203,6 +245,7 @@ server.listen({port: config.port}, () => {
 let once = false
 setInterval(async () => {
 
+    return
     if (!once) {
         console.log('create files campaign and offer')
         let files = await getLocalFiles(config.recipe.folder)
