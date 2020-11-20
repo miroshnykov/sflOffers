@@ -1,6 +1,7 @@
 const express = require('express');
 const config = require('plain-config')()
 const http = require('http')
+const os = require('os')
 const socketIO = require('socket.io')
 const app = express()
 const server = http.createServer(app);
@@ -91,6 +92,18 @@ app.get('/files', async (req, res, next) => {
         let size2 = await getFileSize(files[1])
         response.files1Size = size1
         response.files2Size = size2
+
+        const computerName = os.hostname()
+        const cpus = os.cpus()
+        const freemem = os.freemem()
+        const userInfo = os.userInfo()
+        const release = os.release()
+        response.computerName = computerName || 0
+        response.cpus = cpus || 0
+        response.freemem = freemem || 0
+        response.userInfo = userInfo || 0
+        response.release = release || 0
+
         res.send(response)
     } catch (e) {
         response.err = 'error files' + JSON.stringify(e)
