@@ -4,8 +4,6 @@ stages:
   - task deploy
   - task quality
 # Developer Ticket Merging into Dev
-  - dev merge
-  - dev build
   - dev deploy
   - dev quality
 # Dev Branch Merging into Master
@@ -28,7 +26,6 @@ Base:
     - tags
 
 # ###################################################################################################################
-# Task Build: Developer task/branch is built and pushed into the registry
 # Task Deploy: Developer task/branch is manually deployed onto a stagin env.
 # ###################################################################################################################
  
@@ -52,7 +49,7 @@ Task Deploy:
     - tags
 
 # ###################################################################################################################
-# QA Task Passed: QA approves developer task/branch
+# QA Task Passed: QA approves developer task/branch and merge to dev
 # QA Task Rejected: QA rejects developer task/branch
 # ###################################################################################################################
 QA Task Passed:
@@ -79,32 +76,8 @@ QA Task Rejected:
     - master  
     - tags
 # ###################################################################################################################
-# Dev Branch Merge: Merge into dev branch once approval from QA passed
-# Dev Branch Build: Build an image upon merger
-# Dev Deploy: Deploy dev branch after merge onto a server automatically
+# Dev Deploy: Build & Deploy dev branch after merge onto a server automatically
 # #################################################################################################################
-
-Dev Branch Merge:
-  stage: dev merge
-  script:
-    - echo "Merging into dev branch"    
-    # 1. Send notification to user that QA passed his branch.
-    # 2. Update jira ticket that test passed? 
-  needs: [QA Task Passed]
-  except:
-    - master
-    - tags
-
-Dev Branch Build:
-  stage: dev build
-  script:
-    - echo "Build dev branch"    
-    # 1. Send notification to user that QA passed his branch.
-    # 2. Update jira ticket that test passed?
-  needs: [Dev Branch Merge]
-  except:
-    - master
-    - tags
 
 Dev Deploy:
   stage: dev deploy
