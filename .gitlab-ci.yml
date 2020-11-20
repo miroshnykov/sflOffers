@@ -69,7 +69,7 @@ Stage2:
 # QA Task Passed: QA approves developer task/branch and merge to dev
 # QA Task Rejected: QA rejects developer task/branch
 # ###################################################################################################################
-Stage1 Pass:
+Stage 1 Pass:
   stage: task quality
   script:
     - echo "QA Approve the build, proceed to merge into Dev."    
@@ -81,7 +81,7 @@ Stage1 Pass:
     - master
     - tags
 
-Stage2 Pass:
+Stage 2 Pass:
   stage: task quality
   script:
     - echo "QA Approve the build, proceed to merge into Dev."    
@@ -94,7 +94,7 @@ Stage2 Pass:
     - tags
 
 
-QA Task Rejected:
+Test Failed:
   stage: task quality
   script:
     - echo "QA Rejected the build, it will not be merged into Dev."   
