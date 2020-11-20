@@ -85,6 +85,10 @@ app.get('/files', async (req, res, next) => {
 
         response.files1 = files[0]
         response.files2 = files[1]
+        let size1 = await getFileSize(files[0])
+        let size2 = await getFileSize(files[1])
+        response.files1Size = size1
+        response.files2Size = size2
         res.send(response)
     } catch (e) {
         response.err = 'error files' + JSON.stringify(e)
@@ -241,12 +245,9 @@ server.listen({port: config.port}, () => {
     console.log(`\n🚀\x1b[35m Server ready at http://localhost:${config.port} \x1b[0m \n`)
 })
 
-
-let once = false
 setInterval(async () => {
 
-    return
-    if (!once) {
+    try {
         console.log('create files campaign and offer')
         let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]
@@ -259,50 +260,32 @@ setInterval(async () => {
         }
         await createRecipeCampaign()
         await createRecipeOffers()
+    } catch (e) {
+        console.log('create files campaign and offer error:', e)
     }
-    once = true
-}, 8000)
 
-// sfl-core-engine part
+}, 60000) //every min
+
 setTimeout(async () => {
 
-    console.log('read GZIP file')
+    console.log('create recipe file first time')
+    try {
+        let files = await getLocalFiles(config.recipe.folder)
+        let file1 = files[0]
+        let file2 = files[1]
+        if (file1) {
+            await deleteJsonFile(file1)
+        }
+        if (file2) {
+            await deleteJsonFile(file2)
+        }
+        await createRecipeCampaign()
+        await createRecipeOffers()
+    } catch (e) {
+        console.log('create files campaign and offer first time error:', e)
+    }
 
-    return
-    //  **************************** READ GZIP FILE
-    // let gunzip = zlib.createGunzip();
-    // let rstream = fs.createReadStream('/home/miroshnykov/Downloads/offer/2020-11-13/04/20201113043114646788.json.gz');
-    // let rstream = fs.createReadStream('/home/miroshnykov/Downloads/offer/2020-11-13/16/20201113160541880104.json.gz'); // 500 000
-
-    let gunzip = zlib.createGunzip();
-    console.time('JSONStreamInsert')
-    let file = '/home/miroshnykov/Downloads/offer/2020-11-13/17/20201113173728597521.json.gz' // 500 000 rec 3500 characters
-    // let file = '/home/miroshnykov/Downloads/offer/2020-11-13/17/20201113173728597521.json' // 500 000 rec 3500 characters
-    // let file = '/home/miroshnykov/Downloads/offer/2020-11-13/04/20201113043114646788.json' // 10 rec
-    // let file = '/home/miroshnykov/Downloads/offer/2020-11-13/04/20201113043114646788.json.gz' // 10 rec
-    // let stream = fs.createReadStream(file, {encoding: 'utf8'})
-    let stream = fs.createReadStream(file)
-    let JSONStream = require("JSONStream")
-    let jsonStream = JSONStream.parse('*')
-    stream.pipe(gunzip).pipe(jsonStream)
-    // uncompresses
-    let i = 0
-    jsonStream.on('data', async (item) => {
-        // process data
-        // if(i < 10){
-        let num = Math.floor(Math.random() * 1000000000);
-        await setDataCache(`offer-${item.id}${num}`, item.rules)
-        // }
-        // i++
-    })
-
-    jsonStream.on('end', () => {
-        console.log('done')
-        console.timeEnd('JSONStreamInsert')
-    })
-
-
-}, 3000000)
+}, 9000)
 
 
 const waitFor = delay => new Promise(resolve => setTimeout(resolve, delay))
