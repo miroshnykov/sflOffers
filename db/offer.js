@@ -15,7 +15,7 @@ const offerInfo = async () => {
             LEFT JOIN sfl_offer_landing_pages lp ON lp.id = o.sfl_offer_landing_page_id                        
         `)
         await dbMysql.end()
-        console.log(`\nget offerInfo count: ${result.length}`)
+        // console.log(`\nget offerInfo count: ${result.length}`)
         return result
     } catch (e) {
         console.log(e)
@@ -35,7 +35,7 @@ const campaigns = async () => {
             WHERE c.status = 'active'  AND rules != ''                        
         `)
         await dbMysql.end()
-        console.log(`\nget campaigns count: ${result.length}`)
+        // console.log(`\nget campaigns count: ${result.length}`)
         return result
     } catch (e) {
         console.log(e)
