@@ -29,32 +29,15 @@ Base:
 # Task Deploy: Developer task/branch is manually deployed onto a stagin env.
 # ###################################################################################################################
  
-Stage1:
+Task Deploy:
   image: docker:latest
-  # Official docker image.
-  stage: task deploy
-  services:
-    - docker:dind
-  before_script:
-    -  echo "Deploying to QA Server 1"
-  script:
-    - echo $CI_BUILD_TOKEN | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - docker build --pull -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE":$RELEASE . 
-    - docker push  "$CI_REGISTRY_IMAGE":$RELEASE   
-  when: manual
-  allow_failure: false
-  except:
-    - master
-    - tags
 
-Stage2:
-  image: docker:latest
   # Official docker image.
   stage: task deploy
   services:
     - docker:dind
   before_script:
-    -  echo "Deploying to QA Server 2"
+    -  echo "Deploying to QA Server"
   script:
     - echo $CI_BUILD_TOKEN | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - docker build --pull -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE":$RELEASE . 
@@ -69,32 +52,19 @@ Stage2:
 # QA Task Passed: QA approves developer task/branch and merge to dev
 # QA Task Rejected: QA rejects developer task/branch
 # ###################################################################################################################
-Stage 1 Pass:
+QA Task Passed:
   stage: task quality
   script:
     - echo "QA Approve the build, proceed to merge into Dev."    
     # 1. Send notification to user that QA passed his branch.
     # 2. Update jira ticket that test passed? 
   when: manual
-  needs: [Stage1]
+  needs: [Task Deploy]
   except:
     - master
     - tags
 
-Stage 2 Pass:
-  stage: task quality
-  script:
-    - echo "QA Approve the build, proceed to merge into Dev."    
-    # 1. Send notification to user that QA passed his branch.
-    # 2. Update jira ticket that test passed? 
-  when: manual
-  needs: [Stage2]
-  except:
-    - master
-    - tags
-
-
-Test Failed:
+QA Task Rejected:
   stage: task quality
   script:
     - echo "QA Rejected the build, it will not be merged into Dev."   
@@ -115,6 +85,7 @@ Dev Deploy:
     - echo "Deploy dev branch"    
     # 1. Send notification to user that QA passed his branch.
     # 2. Update jira ticket that test passed? 
+  needs: [QA Task Passed]
   except:
     - master
     - tags
@@ -212,7 +183,3 @@ Deploy Image:
     - rm -rf ~/.ssh/deployer/id_rsa
   only:
     - master
-
-     
- 
-
