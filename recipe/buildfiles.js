@@ -14,24 +14,23 @@ const {
 const {memorySizeOf, memorySizeOfBite} = require('../lib/helper')
 
 const createRecipeCampaign = async () => {
-    console.log('createfile Campaign')
-    console.time('createfileCampaign')
+    // console.log('createfile Campaign')
+    // console.time('createfileCampaign')
     let offerData = await campaigns()
     let localFolder = '/tmp/recipe/'
 
 
     let filePath = localFolder + await generateFilePath('campaign')
-    console.log('filePath', filePath)
+    // console.log('filePath', filePath)
     let fileFolder = path.dirname(filePath);
-    console.log('fileFolder:', fileFolder)
+    // console.log('fileFolder:', fileFolder)
     await createRecursiveFolder(fileFolder)
-    console.log('sfl_filePath:', filePath)
+    // console.log('sfl_filePath:', filePath)
 
     let sizeOfDbMaps = await memorySizeOf(offerData)
 
-    console.log('res.length', offerData.length)
-    console.log('sizeOfDbMaps:', sizeOfDbMaps)
-
+    // console.log('res.length', offerData.length)
+    // console.log('sizeOfDbMaps:', sizeOfDbMaps)
 
     let transformStream = JSONStream.stringify();
     let outputStream = fileSystem.createWriteStream(filePath);
@@ -46,11 +45,12 @@ const createRecipeCampaign = async () => {
         "finish",
         async function handleFinish() {
 
-            console.log(chalk.green("JSONStream serialization complete!"))
+            // console.log(chalk.green("JSONStream serialization complete!"))
             await compressFileZlibSfl(filePath)
             await deleteJsonFile(filePath)
-            console.timeEnd('createfileCampaign')
-            console.log('done')
+            // console.timeEnd('createfileCampaign')
+
+            console.log(`File Campaigns created path:${filePath}, size:${sizeOfDbMaps}` )
 
         }
     );
@@ -58,26 +58,24 @@ const createRecipeCampaign = async () => {
 
 }
 const createRecipeOffers = async () => {
-    console.log('createfile with offers')
-    console.time('createFileOffers')
+    // console.log('createfile with offers')
+    // console.time('createFileOffers')
     // ************** CREATE ZIP FILE
     let offerData = await offerInfo()
     let localFolder = '/tmp/recipe/'
 
 
     let filePath = localFolder + await generateFilePath('offer')
-    console.log('filePath', filePath)
+    // console.log('filePath', filePath)
     let fileFolder = path.dirname(filePath);
-    console.log('fileFolder:', fileFolder)
+    // console.log('fileFolder:', fileFolder)
     await createRecursiveFolder(fileFolder)
-    console.log('sfl_filePath:', filePath)
-    // return
-    // let duplicate = Object.assign({}, offerData)
+    // console.log('sfl_filePath:', filePath)
 
     let sizeOfDbMaps = await memorySizeOf(offerData)
 
-    console.log('res.length', offerData.length)
-    console.log('sizeOfDbMaps:', sizeOfDbMaps)
+    // console.log('res.length', offerData.length)
+    // console.log('sizeOfDbMaps:', sizeOfDbMaps)
 
     let transformStream = JSONStream.stringify();
     let outputStream = fileSystem.createWriteStream(filePath);
@@ -92,11 +90,11 @@ const createRecipeOffers = async () => {
         "finish",
         async function handleFinish() {
 
-            console.log(chalk.green("JSONStream serialization complete!"));
+            // console.log(chalk.green("JSONStream serialization complete!"));
             await compressFileZlibSfl(filePath)
             await deleteJsonFile(filePath)
-            console.timeEnd('createFileOffers')
-            console.log('done')
+            // console.timeEnd('createFileOffers')
+            console.log(`File Offers created path:${filePath}, size:${sizeOfDbMaps} ` )
         }
     );
 

@@ -28,6 +28,7 @@ app.get('/health', (req, res, next) => {
 app.get('/encodeUrl', async (req, res, next) => {
     let response = {}
     // http://localhost:8091/encodeUrl?offerId=1111&campaignId=22222
+    // https://sfl-offers.surge.systems/encodeUrl?offerId=2&campaignId=4
 
     try {
         let query = req.query
@@ -54,6 +55,7 @@ app.get('/encodeUrl', async (req, res, next) => {
 
 app.get('/decodeUrl', async (req, res, next) => {
     // http://localhost:8091/decodeUrl?campaign=415655028459403008171b3b20b12df8:fe6b8dd08c47a5d240747ecb28330b37e76ade3b203f8fb6fa166e1b573372348eb61217d27871856bc30306a57c07b2
+    //https://sfl-offers.surge.systems/decodeUrl?campaign=0e070dd6f2cbaf1d189fc6e7c828ba87:7abb1fcd4629c1ad26d8dfe48d5728fbb8d04ce42dc716114ebee4844de0b2ce3f53f48c6376a6c60efe8f2b1deab0f4
     let response = {}
 
     try {
