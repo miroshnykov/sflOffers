@@ -76,7 +76,7 @@ QA Task Passed:
     # 1. Send notification to user that QA passed his branch.
     # 2. Update jira ticket that test passed? 
   when: manual
-  needs: [Task Deploy]
+  needs: [task deploy]
   except:
     - master
     - tags
