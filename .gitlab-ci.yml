@@ -29,15 +29,32 @@ Base:
 # Task Deploy: Developer task/branch is manually deployed onto a stagin env.
 # ###################################################################################################################
  
-Task Deploy:
+Task Deploy Stage1:
   image: docker:latest
-
   # Official docker image.
   stage: task deploy
   services:
     - docker:dind
   before_script:
-    -  echo "Deploying to QA Server"
+    -  echo "Deploying to QA Server 1"
+  script:
+    - echo $CI_BUILD_TOKEN | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker build --pull -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE":$RELEASE . 
+    - docker push  "$CI_REGISTRY_IMAGE":$RELEASE   
+  when: manual
+  allow_failure: false
+  except:
+    - master
+    - tags
+
+Task Deploy Stage2:
+  image: docker:latest
+  # Official docker image.
+  stage: task deploy
+  services:
+    - docker:dind
+  before_script:
+    -  echo "Deploying to QA Server 2"
   script:
     - echo $CI_BUILD_TOKEN | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - docker build --pull -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE":$RELEASE . 
