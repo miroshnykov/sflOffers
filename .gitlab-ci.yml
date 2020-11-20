@@ -29,7 +29,7 @@ Base:
 # Task Deploy: Developer task/branch is manually deployed onto a stagin env.
 # ###################################################################################################################
  
-Task Deploy Stage1:
+Stage1:
   image: docker:latest
   # Official docker image.
   stage: task deploy
@@ -47,7 +47,7 @@ Task Deploy Stage1:
     - master
     - tags
 
-Task Deploy Stage2:
+Stage2:
   image: docker:latest
   # Official docker image.
   stage: task deploy
@@ -76,7 +76,6 @@ QA Task Passed:
     # 1. Send notification to user that QA passed his branch.
     # 2. Update jira ticket that test passed? 
   when: manual
-  needs: [Task Deploy Stage1,Task Deploy Stage2]
   except:
     - master
     - tags
