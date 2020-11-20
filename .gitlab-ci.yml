@@ -1,7 +1,6 @@
 stages:
   - init
 # Developer Ticket Build
-  - task build
   - task deploy
   - task quality
 # Developer Ticket Merging into Dev
@@ -32,26 +31,20 @@ Base:
 # Task Build: Developer task/branch is built and pushed into the registry
 # Task Deploy: Developer task/branch is manually deployed onto a stagin env.
 # ###################################################################################################################
-
-Task Build:
-  # Official docker image.
+ 
+Task Deploy:
   image: docker:latest
-  stage: task build
+
+  # Official docker image.
+  stage: task deploy
   services:
     - docker:dind
+  before_script:
+    -  echo "Deploying to QA Server"
   script:
     - echo $CI_BUILD_TOKEN | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - docker build --pull -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE":$RELEASE . 
-    - docker push  "$CI_REGISTRY_IMAGE":$RELEASE
-  except:
-    - master
-    - tags
- 
-Task Deploy:
-  # Official docker image.
-  stage: task deploy
-  script:
-    - echo "Deploying to QA Server"    
+    - docker push  "$CI_REGISTRY_IMAGE":$RELEASE   
   when: manual
   allow_failure: false
   except:
