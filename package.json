@@ -34,6 +34,7 @@
     "node-dir": "^0.1.17",
     "numeral": "^2.0.6",
     "object-sizeof": "^1.6.1",
+    "os": "^0.1.1",
     "path": "^0.12.7",
     "pino": "^6.3.2",
     "plain-config": "^0.1.3",
