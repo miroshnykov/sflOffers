@@ -115,7 +115,6 @@ Dev Deploy:
     - echo "Deploy dev branch"    
     # 1. Send notification to user that QA passed his branch.
     # 2. Update jira ticket that test passed? 
-  needs: [QA Task Passed]
   except:
     - master
     - tags
