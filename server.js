@@ -20,6 +20,10 @@ const {receiveMessage} = require('./sqs/sqs')
 
 const metrics = require('./lib/metrics')
 
+const LIMIT_CLIENTS = 60
+let clients = []
+const ss = require('socket.io-stream')
+const fs = require('fs')
 
 app.get('/health', (req, res, next) => {
     res.send('Ok')
@@ -93,6 +97,7 @@ app.get('/files', async (req, res, next) => {
         let size2 = await getFileSize(files[1])
         response.files1Size = size1
         response.files2Size = size2
+        response.countsOfClients = clients.length || 0
 
         const computerName = os.hostname()
         const cpus = os.cpus()
@@ -191,10 +196,6 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
     }
 })
 
-const LIMIT_CLIENTS = 60
-let clients = []
-const ss = require('socket.io-stream')
-const fs = require('fs')
 
 // const filename = '/tmp/recipe/campaign-2020111620510215308.json.gz';
 
