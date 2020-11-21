@@ -86,6 +86,7 @@ app.get('/files', async (req, res, next) => {
     try {
         let files = await getLocalFiles(config.recipe.folder)
 
+        response.files = files
         response.files1 = files[0]
         response.files2 = files[1]
         let size1 = await getFileSize(files[0])
@@ -305,6 +306,7 @@ setInterval(async () => {
 setInterval(async () => {
 
     try {
+        if (config.env === 'development') return
         console.log('create files campaign and offer')
         let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]
@@ -326,6 +328,8 @@ setInterval(async () => {
 }, 60000) //every min
 
 setTimeout(async () => {
+
+    if (config.env === 'development') return
 
     console.log('create recipe file first time')
     try {
