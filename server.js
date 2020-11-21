@@ -142,11 +142,20 @@ app.get('/sqs', async (req, res, next) => {
 })
 
 const getFileSize = (filename) => {
-    let stats = fs.statSync(filename);
-    let fileSizeInBytes = stats.size;
-    let fileSizeInMegabytes = fileSizeInBytes / (1024 * 1024);
-    // console.log('fileSizeInBytes:',fileSizeInMegabytes,'MB')
-    return `${fileSizeInMegabytes} MB`;
+    try {
+        console.log(`*** getFileSize:${filename}`)
+        let stats = fs.statSync(filename);
+        let fileSizeInBytes = stats.size;
+        let fileSizeInMegabytes = fileSizeInBytes / (1024 * 1024);
+        // console.log('fileSizeInBytes:',fileSizeInMegabytes,'MB')
+        // return `${fileSizeInMegabytes} MB`;
+        return fileSizeInBytes
+    } catch (e) {
+        console.log('getFileSizeError:', e)
+        metrics.influxdb(500, `getFileSizeError`)
+    }
+
+
 }
 
 app.get('/forceCreateRecipe', async (req, res, next) => {
@@ -199,44 +208,58 @@ io.on('connection', async (socket) => {
             console.log(`Clients more then ${LIMIT_CLIENTS}`)
         }
 
-
     }
 
     socket.on('sendFileCampaign', async () => {
 
-        let files = await getLocalFiles(config.recipe.folder)
+        try {
+            let files = await getLocalFiles(config.recipe.folder)
 
-        // console.log('files:', files)
-        let file = files[0]
+            // console.log('files:', files)
+            let file = files[0]
 
-        if (!file) {
-            console.log(`no files in folder:${config.recipe.folder}`)
-            return
+            if (!file) {
+                console.log(`no files in folder:${config.recipe.folder}`)
+                return
+            }
+
+            let stream = ss.createStream();
+            stream.on('end', () => {
+                console.log(`file:${file} sent to soket ID:${socket.id}`);
+                metrics.influxdb(200, `sendFileCampaign`)
+            });
+            ss(socket).emit('sendingCampaigns', stream);
+            fs.createReadStream(file).pipe(stream);
+        } catch (e) {
+            console.log('sendFileCampaignError:', e)
+            metrics.influxdb(500, `sendFileCampaignError`)
         }
 
-        let stream = ss.createStream();
-        stream.on('end', () => {
-            console.log(`file:${file} sent size:${getFileSize(file)} to soket ID:${socket.id}`);
-        });
-        ss(socket).emit('sendingCampaigns', stream);
-        fs.createReadStream(file).pipe(stream);
     });
 
     socket.on('sendFileOffer', async () => {
 
-        let files = await getLocalFiles(config.recipe.folder)
+        try {
+            let files = await getLocalFiles(config.recipe.folder)
 
-        let file = files[1]
-        if (!file) {
-            console.log(`no files in folder:${config.recipe.folder}`)
-            return
+            let file = files[1]
+            if (!file) {
+                console.log(`no files in folder:${config.recipe.folder}`)
+                return
+            }
+            let stream = ss.createStream();
+            stream.on('end', () => {
+                console.log(`file:${file} sent to soket ID:${socket.id}`);
+                metrics.influxdb(200, `sendFileOffer`)
+            });
+            ss(socket).emit('sendingOffers', stream);
+            fs.createReadStream(file).pipe(stream);
+
+        } catch (e) {
+            console.log('sendFileOfferError:', e)
+            metrics.influxdb(500, `sendFileOfferError`)
         }
-        let stream = ss.createStream();
-        stream.on('end', () => {
-            console.log(`file:${file} sent size:${getFileSize(file)} to soket ID:${socket.id}`);
-        });
-        ss(socket).emit('sendingOffers', stream);
-        fs.createReadStream(file).pipe(stream);
+
     });
 
     //
@@ -261,6 +284,25 @@ server.listen({port: config.port}, () => {
 })
 
 setInterval(async () => {
+    if (config.env === 'development') return
+    try {
+        let files = await getLocalFiles(config.recipe.folder)
+        let file1 = files[0]
+        let file2 = files[1]
+
+        let fileSizeOffer = await getFileSize(file2) || 0
+        let fileSizeCampaign = await getFileSize(file1) || 0
+        // console.log('fileSizeOffer:', fileSizeOffer)
+        // console.log('fileSizeCampaign:', fileSizeCampaign)
+        metrics.sendMetricsSystem(fileSizeOffer.toString(), fileSizeCampaign.toString())
+    } catch (e) {
+        metrics.influxdb(500, `getFileSizeError'`)
+    }
+
+}, 60000)
+
+
+setInterval(async () => {
 
     try {
         console.log('create files campaign and offer')
@@ -275,7 +317,9 @@ setInterval(async () => {
         }
         await createRecipeCampaign()
         await createRecipeOffers()
+
     } catch (e) {
+        metrics.influxdb(500, `createRecipeFileError'`)
         console.log('create files campaign and offer error:', e)
     }
 
@@ -297,6 +341,7 @@ setTimeout(async () => {
         await createRecipeCampaign()
         await createRecipeOffers()
     } catch (e) {
+        metrics.influxdb(500, `createRecipeFileFirstTimeError'`)
         console.log('create files campaign and offer first time error:', e)
     }
 
