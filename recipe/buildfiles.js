@@ -13,10 +13,12 @@ const {
 
 const {memorySizeOf, memorySizeOfBite} = require('../lib/helper')
 
+const metrics = require('../lib/metrics')
+
 const createRecipeCampaign = async () => {
     // console.log('createfile Campaign')
     // console.time('createfileCampaign')
-    let offerData = await campaigns()
+    let campaignData = await campaigns()
     let localFolder = '/tmp/recipe/'
 
 
@@ -27,7 +29,7 @@ const createRecipeCampaign = async () => {
     await createRecursiveFolder(fileFolder)
     // console.log('sfl_filePath:', filePath)
 
-    let sizeOfDbMaps = await memorySizeOf(offerData)
+    let sizeCampaign = await memorySizeOf(campaignData)
 
     // console.log('res.length', offerData.length)
     // console.log('sizeOfDbMaps:', sizeOfDbMaps)
@@ -37,7 +39,7 @@ const createRecipeCampaign = async () => {
 
     transformStream.pipe(outputStream);
 
-    offerData.forEach(transformStream.write);
+    campaignData.forEach(transformStream.write);
 
     transformStream.end();
 
@@ -49,8 +51,8 @@ const createRecipeCampaign = async () => {
             await compressFileZlibSfl(filePath)
             await deleteJsonFile(filePath)
             // console.timeEnd('createfileCampaign')
-
-            console.log(`File Campaigns created path:${filePath}, size:${sizeOfDbMaps}` )
+            // metrics.influxdb(200, `sizeOfCampaigns-${sizeCampaign}`)
+            console.log(`File Campaigns created path:${filePath}, size:${sizeCampaign}` )
 
         }
     );
@@ -72,7 +74,7 @@ const createRecipeOffers = async () => {
     await createRecursiveFolder(fileFolder)
     // console.log('sfl_filePath:', filePath)
 
-    let sizeOfDbMaps = await memorySizeOf(offerData)
+    let sizeOfOffers = await memorySizeOf(offerData)
 
     // console.log('res.length', offerData.length)
     // console.log('sizeOfDbMaps:', sizeOfDbMaps)
@@ -94,7 +96,8 @@ const createRecipeOffers = async () => {
             await compressFileZlibSfl(filePath)
             await deleteJsonFile(filePath)
             // console.timeEnd('createFileOffers')
-            console.log(`File Offers created path:${filePath}, size:${sizeOfDbMaps} ` )
+            // metrics.influxdb(200, `sizeOfOffers-${sizeOfOffers}`)
+            console.log(`File Offers created path:${filePath}, size:${sizeOfOffers} ` )
         }
     );
 
