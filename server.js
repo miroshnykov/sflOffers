@@ -204,6 +204,7 @@ io.on('connection', async (socket) => {
 
         if (clients.length < LIMIT_CLIENTS) {
             clients.push(socket.id)
+            // metrics.influxdb(200, `countOfClients-${clients.length}`)
             console.log(`New client just connected: ${socket.id} `)
         } else {
             console.log(`Clients more then ${LIMIT_CLIENTS}`)
@@ -266,6 +267,7 @@ io.on('connection', async (socket) => {
     //
     socket.on('disconnect', () => {
         clients.splice(clients.indexOf(socket.id, 1))
+        // metrics.influxdb(200, `countOfClients-${clients.length}`)
         console.log(`disconnect ${socket.id}, Count of client: ${clients.length} `);
         // console.log(`disconnect clients:`, clients);
         // metrics.influxdb(200, `disconnect`)
@@ -295,7 +297,11 @@ setInterval(async () => {
         let fileSizeCampaign = await getFileSize(file1) || 0
         // console.log('fileSizeOffer:', fileSizeOffer)
         // console.log('fileSizeCampaign:', fileSizeCampaign)
-        metrics.sendMetricsSystem(fileSizeOffer.toString(), fileSizeCampaign.toString())
+        metrics.sendMetricsSystem(
+            fileSizeOffer.toString(),
+            fileSizeCampaign.toString(),
+            clients.length || 0
+        )
     } catch (e) {
         metrics.influxdb(500, `getFileSizeError'`)
     }
