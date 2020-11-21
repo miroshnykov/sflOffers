@@ -299,7 +299,7 @@ setInterval(async () => {
         metrics.influxdb(500, `getFileSizeError'`)
     }
 
-}, 60000)
+}, 65000)
 
 
 setInterval(async () => {
