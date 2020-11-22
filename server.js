@@ -6,7 +6,7 @@ const socketIO = require('socket.io')
 const app = express()
 const server = http.createServer(app);
 const io = socketIO(server)
-const {getFileSize} = require('./lib/helper')
+const {getFileSize, formatByteSize} = require('./lib/helper')
 const {
     getLocalFiles
 } = require('./lib/zipOffer')
@@ -90,17 +90,17 @@ app.get('/files', async (req, res, next) => {
         response.files2 = files[1]
         let size1 = await getFileSize(files[0])
         let size2 = await getFileSize(files[1])
-        response.files1Size = size1
-        response.files2Size = size2
+        response.files1Size = formatByteSize(size1)
+        response.files2Size = formatByteSize(size2)
         response.countsOfClients = clients.length || 0
 
         const computerName = os.hostname()
-        const cpus = os.cpus()
+        // const cpus = os.cpus()
         const freemem = os.freemem()
         const userInfo = os.userInfo()
         const release = os.release()
         response.computerName = computerName || 0
-        response.cpus = cpus || 0
+        // response.cpus = cpus || 0
         response.freemem = freemem || 0
         response.userInfo = userInfo || 0
         response.release = release || 0
