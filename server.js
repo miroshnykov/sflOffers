@@ -6,15 +6,13 @@ const socketIO = require('socket.io')
 const app = express()
 const server = http.createServer(app);
 const io = socketIO(server)
-const {getDataCache, setDataCache} = require('./lib/redis')
-const {memorySizeOf, memorySizeOfBite} = require('./lib/helper')
-const zlib = require('zlib')
+const {getFileSize} = require('./lib/helper')
 const {
     getLocalFiles
 } = require('./lib/zipOffer')
 
 const {createRecipeCampaign, createRecipeOffers} = require('./recipe/buildfiles')
-const {deleteJsonFile} = require('./lib/zipOffer')
+const {deleteFile} = require('./lib/zipOffer')
 const {encrypt, decrypt} = require('./lib/encrypt')
 const {receiveMessage} = require('./sqs/sqs')
 
@@ -28,7 +26,6 @@ const fs = require('fs')
 app.get('/health', (req, res, next) => {
     res.send('Ok')
 })
-
 
 app.get('/encodeUrl', async (req, res, next) => {
     let response = {}
@@ -80,8 +77,6 @@ app.get('/decodeUrl', async (req, res, next) => {
         response.err = 'error decodeUrl' + JSON.stringify(e)
         res.send(response)
     }
-
-
 })
 
 app.get('/files', async (req, res, next) => {
@@ -115,10 +110,7 @@ app.get('/files', async (req, res, next) => {
         response.err = 'error files' + JSON.stringify(e)
         res.send(response)
     }
-
-
 })
-
 
 app.get('/sqs', async (req, res, next) => {
     let response = {}
@@ -143,26 +135,7 @@ app.get('/sqs', async (req, res, next) => {
         response.err = 'error sqs' + JSON.stringify(e)
         res.send(response)
     }
-
-
 })
-
-const getFileSize = (filename) => {
-    try {
-        console.log(`*** getFileSize:${filename}`)
-        let stats = fs.statSync(filename);
-        let fileSizeInBytes = stats.size;
-        let fileSizeInMegabytes = fileSizeInBytes / (1024 * 1024);
-        // console.log('fileSizeInBytes:',fileSizeInMegabytes,'MB')
-        // return `${fileSizeInMegabytes} MB`;
-        return fileSizeInBytes
-    } catch (e) {
-        console.log('getFileSizeError:', e)
-        metrics.influxdb(500, `getFileSizeError`)
-    }
-
-
-}
 
 app.get('/forceCreateRecipe', async (req, res, next) => {
     let response = {}
@@ -172,10 +145,10 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
         let file1 = files[0]
         let file2 = files[1]
         if (file1) {
-            await deleteJsonFile(file1)
+            await deleteFile(file1)
         }
         if (file2) {
-            await deleteJsonFile(file2)
+            await deleteFile(file2)
         }
         await createRecipeCampaign()
         await createRecipeOffers()
@@ -191,13 +164,9 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
 
     } catch (e) {
         response.err = 'error recipe' + JSON.stringify(e)
-
         res.send(response)
     }
 })
-
-
-// const filename = '/tmp/recipe/campaign-2020111620510215308.json.gz';
 
 io.on('connection', async (socket) => {
 
@@ -210,7 +179,6 @@ io.on('connection', async (socket) => {
         } else {
             console.log(`Clients more then ${LIMIT_CLIENTS}`)
         }
-
     }
 
     socket.on('sendFileCampaign', async () => {
@@ -238,7 +206,7 @@ io.on('connection', async (socket) => {
             metrics.influxdb(500, `sendFileCampaignError`)
         }
 
-    });
+    })
 
     socket.on('sendFileOffer', async () => {
 
@@ -263,9 +231,8 @@ io.on('connection', async (socket) => {
             metrics.influxdb(500, `sendFileOfferError`)
         }
 
-    });
+    })
 
-    //
     socket.on('disconnect', () => {
         clients.splice(clients.indexOf(socket.id, 1))
         // metrics.influxdb(200, `countOfClients-${clients.length}`)
@@ -273,7 +240,6 @@ io.on('connection', async (socket) => {
         // console.log(`disconnect clients:`, clients);
         // metrics.influxdb(200, `disconnect`)
     })
-
 })
 
 io.on('connect', async (socket) => {
@@ -333,10 +299,10 @@ setInterval(async () => {
         let file1 = files[0]
         let file2 = files[1]
         if (file1) {
-            await deleteJsonFile(file1)
+            await deleteFile(file1)
         }
         if (file2) {
-            await deleteJsonFile(file2)
+            await deleteFile(file2)
         }
         await createRecipeCampaign()
         await createRecipeOffers()
@@ -358,10 +324,10 @@ setTimeout(async () => {
         let file1 = files[0]
         let file2 = files[1]
         if (file1) {
-            await deleteJsonFile(file1)
+            await deleteFile(file1)
         }
         if (file2) {
-            await deleteJsonFile(file2)
+            await deleteFile(file2)
         }
         await createRecipeCampaign()
         await createRecipeOffers()
