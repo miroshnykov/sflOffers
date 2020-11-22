@@ -293,16 +293,30 @@ setInterval(async () => {
         let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]
         let file2 = files[1]
+        let fileSizeOffer
+        let fileSizeCampaign
+        if (file2) {
+            fileSizeOffer = await getFileSize(file2) || 0
+        } else {
+            metrics.influxdb(500, `fileSizeOffersNotExists'`)
+        }
 
-        let fileSizeOffer = await getFileSize(file2) || 0
-        let fileSizeCampaign = await getFileSize(file1) || 0
+        if (file1) {
+            fileSizeCampaign = await getFileSize(file1) || 0
+        } else {
+            metrics.influxdb(500, `fileSizeCampaignsNotExists'`)
+        }
+
         // console.log('fileSizeOffer:', fileSizeOffer)
         // console.log('fileSizeCampaign:', fileSizeCampaign)
-        metrics.sendMetricsSystem(
-            fileSizeOffer.toString(),
-            fileSizeCampaign.toString(),
-            clients.length || 0
-        )
+        if (fileSizeOffer && fileSizeCampaign) {
+            metrics.sendMetricsSystem(
+                fileSizeOffer.toString(),
+                fileSizeCampaign.toString(),
+                clients.length || 0
+            )
+        }
+
     } catch (e) {
         metrics.influxdb(500, `getFileSizeError'`)
     }
