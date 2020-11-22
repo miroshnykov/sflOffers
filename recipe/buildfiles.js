@@ -2,13 +2,14 @@ let chalk = require("chalk")
 let JSONStream = require("JSONStream")
 let fileSystem = require("fs")
 let path = require('path')
+const config = require('plain-config')()
 
 const {campaigns, offerInfo} = require('../db/offer')
 const {
     generateFilePath,
     createRecursiveFolder,
     compressFileZlibSfl,
-    deleteJsonFile
+    deleteFile
 } = require('../lib/zipOffer')
 
 const {memorySizeOf, memorySizeOfBite} = require('../lib/helper')
@@ -19,17 +20,15 @@ const createRecipeCampaign = async () => {
     // console.log('createfile Campaign')
     // console.time('createfileCampaign')
     let campaignData = await campaigns()
-    let localFolder = '/tmp/recipe/'
 
-
-    let filePath = localFolder + await generateFilePath('campaign')
+    let filePath = config.recipe.folder + await generateFilePath('campaign')
     // console.log('filePath', filePath)
     let fileFolder = path.dirname(filePath);
     // console.log('fileFolder:', fileFolder)
     await createRecursiveFolder(fileFolder)
     // console.log('sfl_filePath:', filePath)
 
-    let sizeCampaign = await memorySizeOf(campaignData)
+    // let sizeCampaign = await memorySizeOf(campaignData)
 
     // console.log('res.length', offerData.length)
     // console.log('sizeOfDbMaps:', sizeOfDbMaps)
@@ -49,10 +48,10 @@ const createRecipeCampaign = async () => {
 
             // console.log(chalk.green("JSONStream serialization complete!"))
             await compressFileZlibSfl(filePath)
-            await deleteJsonFile(filePath)
+            await deleteFile(filePath)
             // console.timeEnd('createfileCampaign')
             // metrics.influxdb(200, `sizeOfCampaigns-${sizeCampaign}`)
-            console.log(`File Campaigns created path:${filePath}, size:${sizeCampaign}` )
+            console.log(`File Campaigns created path:${filePath}`)
 
         }
     );
@@ -64,17 +63,15 @@ const createRecipeOffers = async () => {
     // console.time('createFileOffers')
     // ************** CREATE ZIP FILE
     let offerData = await offerInfo()
-    let localFolder = '/tmp/recipe/'
 
-
-    let filePath = localFolder + await generateFilePath('offer')
+    let filePath = config.recipe.folder + await generateFilePath('offer')
     // console.log('filePath', filePath)
     let fileFolder = path.dirname(filePath);
     // console.log('fileFolder:', fileFolder)
     await createRecursiveFolder(fileFolder)
     // console.log('sfl_filePath:', filePath)
 
-    let sizeOfOffers = await memorySizeOf(offerData)
+    // let sizeOfOffers = await memorySizeOf(offerData)
 
     // console.log('res.length', offerData.length)
     // console.log('sizeOfDbMaps:', sizeOfDbMaps)
@@ -94,10 +91,10 @@ const createRecipeOffers = async () => {
 
             // console.log(chalk.green("JSONStream serialization complete!"));
             await compressFileZlibSfl(filePath)
-            await deleteJsonFile(filePath)
+            await deleteFile(filePath)
             // console.timeEnd('createFileOffers')
             // metrics.influxdb(200, `sizeOfOffers-${sizeOfOffers}`)
-            console.log(`File Offers created path:${filePath}, size:${sizeOfOffers} ` )
+            console.log(`File Offers created path:${filePath} `)
         }
     );
 
