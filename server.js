@@ -14,7 +14,7 @@ const {
 const {createRecipeCampaign, createRecipeOffers} = require('./recipe/buildfiles')
 const {deleteFile} = require('./lib/zipOffer')
 const {encrypt, decrypt} = require('./lib/encrypt')
-const {receiveMessage} = require('./sqs/sqs')
+const {sqsProcess} = require('./sqs/sqs')
 
 const metrics = require('./lib/metrics')
 
@@ -116,20 +116,7 @@ app.get('/sqs', async (req, res, next) => {
     let response = {}
     console.log('get sqs ')
     try {
-
-        let dataQueue = await receiveMessage()
-        if (!dataQueue.Messages) {
-            console.log(`no records from queue ${queueUrl}`)
-            return
-        }
-        let messageArr = []
-        for (const message of dataQueue.Messages) {
-            let messageBody = JSON.parse(message.Body)
-            messageArr.push(JSON.parse(message.Body))
-            console.log(' \n  messageBody:', messageBody)
-        }
-        response.dataQueue = dataQueue
-        response.messageArr = messageArr
+        response = await sqsProcess('debug')
         res.send(response)
     } catch (e) {
         response.err = 'error sqs' + JSON.stringify(e)
@@ -169,6 +156,8 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
 })
 
 io.on('connection', async (socket) => {
+
+    let updRedis = []
 
     if (!clients.includes(socket.id)) {
 
@@ -233,10 +222,29 @@ io.on('connection', async (socket) => {
 
     })
 
+    const sendUpdRedis = async () => {
+        try {
+            let messages = await sqsProcess()
+            if (!messages) return
+            for (const message of messages) {
+
+                // console.log(`send to socket ${socket.id} messageId:${message.id}, action:${message.action}, type:${message.type}`)
+                console.log(`send to socket ${socket.id}, message:${JSON.stringify(message)}`)
+                io.to(socket.id).emit("updRecipe", message)
+            }
+
+        } catch (e) {
+            console.log('err:', e)
+        }
+    }
+
+    updRedis[socket.id] = setInterval(sendUpdRedis, 60000) //1 min
+
     socket.on('disconnect', () => {
         clients.splice(clients.indexOf(socket.id, 1))
         // metrics.influxdb(200, `countOfClients-${clients.length}`)
         console.log(`disconnect ${socket.id}, Count of client: ${clients.length} `);
+        clearInterval(updRedis[socket.id])
         // console.log(`disconnect clients:`, clients);
         // metrics.influxdb(200, `disconnect`)
     })
