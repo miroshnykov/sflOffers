@@ -230,11 +230,13 @@ io.on('connection', async (socket) => {
 
                 // console.log(`send to socket ${socket.id} messageId:${message.id}, action:${message.action}, type:${message.type}`)
                 console.log(`send to socket ${socket.id}, message:${JSON.stringify(message)}`)
+                metrics.influxdb(200, `sendUpdRecipeOneRecord`)
                 io.to(socket.id).emit("updRecipe", message)
             }
 
         } catch (e) {
-            console.log('err:', e)
+            console.log('updRecipeError:', e)
+            metrics.influxdb(500, `updRecipeError`)
         }
     }
 
