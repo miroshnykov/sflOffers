@@ -19,20 +19,27 @@ if (config.env === 'development') {
 let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events.fifo'
 
 const sqsProcess = async (param = '') => {
-    let dataQueue = await receiveMessage()
-    if (!dataQueue.Messages) {
-        console.log(`no records from queue sfl-offers-events`)
-        return
-    }
-    let messages = []
-    for (const message of dataQueue.Messages) {
-        messages.push(JSON.parse(message.Body))
-        if (param !== 'debug') {
 
-            await deleteMessage(message.ReceiptHandle)
+    try {
+        // let dataQueue = await receiveMessage()
+        let dataQueue = await receiveMessage2()
+        if (!dataQueue.Messages) {
+            console.log(`no records from queue sfl-offers-events`)
+            return
         }
+        let messages = []
+        for (const message of dataQueue.Messages) {
+            messages.push(JSON.parse(message.Body))
+            if (param !== 'debug') {
+
+                await deleteMessage(message.ReceiptHandle)
+            }
+        }
+        return messages
+    } catch (e) {
+        console.log('receiveMessageError:', e)
     }
-    return messages
+
 }
 
 const receiveMessage = async () => {
@@ -49,6 +56,32 @@ const receiveMessage = async () => {
         .catch(err => {
             console.log("Error while fetching messages from the sqs queue", err)
         })
+}
+
+const receiveMessage2 = async () => {
+
+    try {
+        let params = {
+            QueueUrl: queueUrl,
+            AttributeNames: ['All'],
+            MaxNumberOfMessages: 10,
+            VisibilityTimeout: 10,
+            WaitTimeSeconds: 20
+        }
+
+        return sqs.receiveMessage(params).promise()
+            .then(data => {
+                return data
+            })
+            .catch(err => {
+                console.log("Error while fetching messages from the sqs queue", err)
+            })
+
+    } catch (e) {
+        console.log('receiveMessage2Error:',e)
+    }
+
+
 }
 
 const deleteMessage = async (messageId) => {
