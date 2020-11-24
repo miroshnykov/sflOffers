@@ -15,7 +15,8 @@ if (config.env === 'development') {
 }
 
 
-let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events-staging.fifo'
+// let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events-staging.fifo'
+let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events.fifo'
 
 const sqsProcess = async (param = '') => {
     let dataQueue = await receiveMessage()
