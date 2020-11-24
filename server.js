@@ -14,7 +14,7 @@ const {
 const {createRecipeCampaign, createRecipeOffers} = require('./recipe/buildfiles')
 const {deleteFile} = require('./lib/zipOffer')
 const {encrypt, decrypt} = require('./lib/encrypt')
-const {sqsProcess, sqsProcess2} = require('./sqs/sqs')
+const {sqsProcess} = require('./sqs/sqs')
 // const {sqsProcess3} = require('./sqs/sqsTest')
 
 const metrics = require('./lib/metrics')
@@ -227,8 +227,6 @@ io.on('connection', async (socket) => {
     const sendUpdRedis = async () => {
         try {
             let messages = await sqsProcess()
-            // let messages = await sqsProcess2()
-            // let messages = await sqsProcess3()
             if (!messages) return
             for (const message of messages) {
 
