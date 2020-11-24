@@ -15,7 +15,6 @@ const {createRecipeCampaign, createRecipeOffers} = require('./recipe/buildfiles'
 const {deleteFile} = require('./lib/zipOffer')
 const {encrypt, decrypt} = require('./lib/encrypt')
 const {sqsProcess} = require('./sqs/sqs')
-// const {sqsProcess3} = require('./sqs/sqsTest')
 
 const metrics = require('./lib/metrics')
 
@@ -118,7 +117,6 @@ app.get('/sqs', async (req, res, next) => {
     console.log('get sqs ')
     try {
         response = await sqsProcess('debug')
-        // response = await sqsProcess3()
         res.send(response)
     } catch (e) {
         response.err = 'error sqs' + JSON.stringify(e)
