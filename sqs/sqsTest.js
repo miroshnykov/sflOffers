@@ -1,7 +1,7 @@
 // Load the AWS SDK for Node.js
 var AWS = require('aws-sdk');
 // Set the region
-AWS.config.update({region: 'REGION'});
+AWS.config.update({region: 'us-east-1'});
 // Create an SQS service object
 var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
 let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events.fifo'
