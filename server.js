@@ -14,8 +14,8 @@ const {
 const {createRecipeCampaign, createRecipeOffers} = require('./recipe/buildfiles')
 const {deleteFile} = require('./lib/zipOffer')
 const {encrypt, decrypt} = require('./lib/encrypt')
-// const {sqsProcess, sqsProcess2} = require('./sqs/sqs')
-const {sqsProcess3} = require('./sqs/sqsTest')
+const {sqsProcess, sqsProcess2} = require('./sqs/sqs')
+// const {sqsProcess3} = require('./sqs/sqsTest')
 
 const metrics = require('./lib/metrics')
 
@@ -117,8 +117,8 @@ app.get('/sqs', async (req, res, next) => {
     let response = {}
     console.log('get sqs ')
     try {
-        // response = await sqsProcess('debug')
-        response = await sqsProcess3()
+        response = await sqsProcess('debug')
+        // response = await sqsProcess3()
         res.send(response)
     } catch (e) {
         response.err = 'error sqs' + JSON.stringify(e)
@@ -226,9 +226,9 @@ io.on('connection', async (socket) => {
 
     const sendUpdRedis = async () => {
         try {
-            // let messages = await sqsProcess()
+            let messages = await sqsProcess()
             // let messages = await sqsProcess2()
-            let messages = await sqsProcess3()
+            // let messages = await sqsProcess3()
             if (!messages) return
             for (const message of messages) {
 
