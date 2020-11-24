@@ -22,9 +22,34 @@ try {
     console.log('SQS INIT:', e)
 }
 
+
+AWS.config.update({ region: 'us-east-1' });
+
 // let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events-staging.fifo'
 let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events.fifo'
 
+
+const sqs2 = new AWS.SQS({ apiVersion: '2012-11-05' });
+
+const sqsProcess2 = async()=>{
+
+    const params = {
+        QueueUrl: queueUrl,
+        AttributeNames: ['All'],
+        MaxNumberOfMessages: 10,
+        VisibilityTimeout: 10,
+        WaitTimeSeconds: 20,
+    };
+
+    sqs2.receiveMessage(params, function(err, data) {
+        if (err) {
+            console.log("Receive Error", err);
+        } else if (data.Messages) {
+            console.log(' GOT message:',data.Messages )
+        }
+    });
+
+}
 const sqsProcess = async (param = '') => {
 
     try {
@@ -111,5 +136,6 @@ const deleteMessage = async (messageId) => {
 
 
 module.exports = {
-    sqsProcess
+    sqsProcess,
+    sqsProcess2
 }
