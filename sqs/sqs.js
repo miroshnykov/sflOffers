@@ -10,9 +10,12 @@ try {
             region: config.aws.region
         })
     } else {
+
         sqs = new AWS.SQS({
+            apiVersion: '2012-11-05',
             region: 'us-east-1'
         })
+        console.log('sqs:', sqs)
     }
 
 } catch (e) {
