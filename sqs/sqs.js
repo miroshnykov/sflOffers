@@ -1,11 +1,19 @@
 const config = require('plain-config')()
 
 let AWS = require('aws-sdk')
-let sqs = new AWS.SQS({
-    accessKeyId: config.aws.key,
-    secretAccessKey: config.aws.access_key,
-    region: config.aws.region
-});
+let sqs
+if (config.env === 'development') {
+    sqs = new AWS.SQS({
+        accessKeyId: config.aws.key,
+        secretAccessKey: config.aws.access_key,
+        region: config.aws.region
+    })
+} else {
+    sqs = new AWS.SQS({
+        region: 'us-east-1'
+    })
+}
+
 
 let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events-stagin.fifo'
 
