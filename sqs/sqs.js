@@ -2,18 +2,22 @@ const config = require('plain-config')()
 
 let AWS = require('aws-sdk')
 let sqs
-if (config.env === 'development') {
-    sqs = new AWS.SQS({
-        accessKeyId: config.aws.key,
-        secretAccessKey: config.aws.access_key,
-        region: config.aws.region
-    })
-} else {
-    sqs = new AWS.SQS({
-        region: 'us-east-1'
-    })
-}
+try {
+    if (config.env === 'development') {
+        sqs = new AWS.SQS({
+            accessKeyId: config.aws.key,
+            secretAccessKey: config.aws.access_key,
+            region: config.aws.region
+        })
+    } else {
+        sqs = new AWS.SQS({
+            region: 'us-east-1'
+        })
+    }
 
+} catch (e) {
+    console.log('SQS INIT:', e)
+}
 
 // let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events-staging.fifo'
 let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events.fifo'
@@ -78,7 +82,7 @@ const receiveMessage2 = async () => {
             })
 
     } catch (e) {
-        console.log('receiveMessage2Error:',e)
+        console.log('receiveMessage2Error:', e)
     }
 
 
