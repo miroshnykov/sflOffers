@@ -9,6 +9,8 @@ const offerInfo = async () => {
                 o.name as name,
                 o.advertiser as advertiser,
                 o.status as status,
+                o.payin AS payin,
+                o.payout AS payout,
                 lp.id as landingPageId,
                 lp.url as landingPageUrl
             FROM sfl_offers o 
@@ -29,7 +31,7 @@ const campaigns = async () => {
             SELECT 
                 c.id AS campaignId,
                 c.sfl_offer_id AS offerId, 
-                c.affiliate_id,
+                c.affiliate_id AS affiliateId,
                 c.rules 
             FROM sfl_offer_campaigns c 
             WHERE c.status = 'active'  AND rules != ''                        
