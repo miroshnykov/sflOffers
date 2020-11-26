@@ -9,13 +9,12 @@ let sqs = new AWS.SQS({
 })
 
 // let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events-staging.fifo'
-let queueUrl = 'https://sqs.us-east-1.amazonaws.com/511376436002/sfl-offers-events.fifo'
+let queueUrl = config.aws.queue_url
 
 const sqsProcess = async (param = '') => {
 
     try {
         let dataQueue = await receiveMessage()
-        // let dataQueue = await receiveMessage2()
         if (!dataQueue.Messages) {
             console.log(`no records from queue sfl-offers-events`)
             return
