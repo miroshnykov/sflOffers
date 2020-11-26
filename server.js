@@ -260,7 +260,7 @@ io.on('connect', async (socket) => {
 
 server.listen({port: config.port}, () => {
     // metrics.influxdb(200, `serveReady`)
-    console.log(`\n🚀\x1b[35m Server ready at http://localhost:${config.port} \x1b[0m \n`)
+    console.log(`\n🚀\x1b[35m Server ready at http://localhost:${config.port}, env:${config.env} \x1b[0m \n`)
 })
 
 setInterval(async () => {
