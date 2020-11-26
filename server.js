@@ -264,7 +264,9 @@ server.listen({port: config.port}, () => {
 })
 
 setInterval(async () => {
-    if (config.env === 'development') return
+    if (config.env === 'development'
+        || config.env === 'staging'
+    ) return
     try {
         let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]
