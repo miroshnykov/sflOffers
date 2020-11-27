@@ -1,4 +1,4 @@
-# SFL-OFFERS 1
+# SFL-OFFERS
 > publish recipe data to traffic server(sfl-core-engine)   
 
 	docker build -t sfl-offers .
