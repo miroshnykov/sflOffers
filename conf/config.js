@@ -32,7 +32,8 @@ config.flowRotator = {
 config.aws = {
     secret_key: '',
     access_key: '',
-    region: ''
+    region: '',
+    queue_url: ''
 }
 
 config.influxdb = {
