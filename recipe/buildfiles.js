@@ -2,6 +2,7 @@ let chalk = require("chalk")
 let JSONStream = require("JSONStream")
 let fileSystem = require("fs")
 let path = require('path')
+const os = require('os')
 const config = require('plain-config')()
 
 const {campaigns, offerInfo} = require('../db/offer')
@@ -22,7 +23,8 @@ const createRecipeCampaign = async () => {
     try {
         let campaignData = await campaigns()
 
-        console.log('campaignData:', campaignData)
+        const computerName = os.hostname()
+        console.log(`get campaign count:${campaignData.length}, from computer:${computerName} `)
         let filePath = config.recipe.folder + await generateFilePath('campaign')
         // console.log('filePath', filePath)
         let fileFolder = path.dirname(filePath);
@@ -70,6 +72,8 @@ const createRecipeOffers = async () => {
     // ************** CREATE ZIP FILE
     try {
         let offerData = await offerInfo()
+        const computerName = os.hostname()
+        console.log(`get offer count:${offerData.length}, from computer:${computerName} `)
 
         let filePath = config.recipe.folder + await generateFilePath('offer')
         // console.log('filePath', filePath)
