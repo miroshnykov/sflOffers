@@ -15,7 +15,7 @@ module.exports = {
                 password: password,
                 port: port
             }
-            // console.log(mysqlConfig)
+            console.log(mysqlConfig)
             mysql.config(mysqlConfig)
             mysqlAdcenterDb = mysql
         }
