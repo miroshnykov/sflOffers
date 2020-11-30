@@ -25,6 +25,10 @@ const createRecipeCampaign = async () => {
 
         const computerName = os.hostname()
         console.log(`get campaign count:${campaignData.length}, from computer:${computerName} `)
+        if (campaignData.length === 0) {
+            console.log(`No campaigns data`)
+            return
+        }
         let filePath = config.recipe.folder + await generateFilePath('campaign')
         // console.log('filePath', filePath)
         let fileFolder = path.dirname(filePath);
@@ -75,6 +79,11 @@ const createRecipeOffers = async () => {
         const computerName = os.hostname()
         console.log(`get offer count:${offerData.length}, from computer:${computerName} `)
 
+        if (offerData.length === 0) {
+            console.log(`No offers data`)
+            return
+        }
+
         let filePath = config.recipe.folder + await generateFilePath('offer')
         // console.log('filePath', filePath)
         let fileFolder = path.dirname(filePath);
@@ -107,8 +116,8 @@ const createRecipeOffers = async () => {
                 // metrics.influxdb(200, `sizeOfOffers-${sizeOfOffers}`)
                 console.log(`File Offers created path:${filePath} `)
             }
-        );
-    } catch {
+        )
+    } catch (e) {
         metrics.influxdb(500, `createRecipeOffersError'`)
         console.log('createRecipeOffersError:', e)
     }
