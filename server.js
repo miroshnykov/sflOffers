@@ -305,7 +305,7 @@ setInterval(async () => {
 
     try {
         if (config.env === 'development') return
-        console.log('create files campaign and offer')
+        console.log('\nCreate files campaign and offer')
         let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]
         let file2 = files[1]
@@ -317,7 +317,6 @@ setInterval(async () => {
         }
         await createRecipeCampaign()
         await createRecipeOffers()
-
     } catch (e) {
         metrics.influxdb(500, `createRecipeFileError'`)
         console.log('create files campaign and offer error:', e)
