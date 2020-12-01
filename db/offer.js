@@ -5,7 +5,7 @@ const offerInfo = async () => {
     try {
         let result = await dbMysql.query(` 
             SELECT o.id               AS offerId, 
-                   o.NAME             AS NAME, 
+                   o.name             AS name, 
                    o.advertiser       AS advertiser, 
                    o.status           AS status, 
                    o.payin            AS payin, 
