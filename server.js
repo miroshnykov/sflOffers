@@ -265,9 +265,7 @@ server.listen({port: config.port}, () => {
 })
 
 setInterval(async () => {
-    if (config.env === 'development'
-        || config.env === 'staging'
-    ) return
+    if (config.env === 'development') return
     try {
         let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]
@@ -286,7 +284,7 @@ setInterval(async () => {
             metrics.influxdb(500, `fileSizeCampaignsNotExists'`)
         }
 
-        // console.log('fileSizeOffer:', fileSizeOffer)
+        console.log('fileSizeOffer:', fileSizeOffer)
         // console.log('fileSizeCampaign:', fileSizeCampaign)
         if (fileSizeOffer && fileSizeCampaign) {
             metrics.sendMetricsSystem(
@@ -307,7 +305,8 @@ setInterval(async () => {
 
     try {
         if (config.env === 'development') return
-        console.log('create files campaign and offer')
+        const computerName = os.hostname()
+        console.log(`\nCreate files campaign and offer, computerName:${computerName}`)
         let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]
         let file2 = files[1]
@@ -319,7 +318,6 @@ setInterval(async () => {
         }
         await createRecipeCampaign()
         await createRecipeOffers()
-
     } catch (e) {
         metrics.influxdb(500, `createRecipeFileError'`)
         console.log('create files campaign and offer error:', e)
@@ -331,7 +329,7 @@ setTimeout(async () => {
 
     // if (config.env === 'development') return
 
-    console.log('create recipe file first time')
+    console.log('Create recipe file first time')
     try {
         let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]

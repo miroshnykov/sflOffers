@@ -4,17 +4,22 @@ const offerInfo = async () => {
 
     try {
         let result = await dbMysql.query(` 
-            SELECT 
-                o.id as offerId,  
-                o.name as name,
-                o.advertiser as advertiser,
-                o.status as status,
-                o.payin AS payin,
-                o.payout AS payout,
-                lp.id as landingPageId,
-                lp.url as landingPageUrl
-            FROM sfl_offers o 
-            LEFT JOIN sfl_offer_landing_pages lp ON lp.id = o.sfl_offer_landing_page_id                        
+            SELECT o.id               AS offerId, 
+                   o.name             AS name, 
+                   o.advertiser       AS advertiser, 
+                   o.status           AS status, 
+                   o.payin            AS payin, 
+                   o.payout           AS payout, 
+                   lp.id              AS landingPageId, 
+                   lp.url             AS landingPageUrl, 
+                   o.sfl_offer_geo_id AS sflOfferGeoId, 
+                   g.rules            AS geoRules, 
+                   g.sfl_offer_id     AS geoOfferId 
+            FROM   sfl_offers o 
+                   LEFT JOIN sfl_offer_landing_pages lp 
+                          ON lp.id = o.sfl_offer_landing_page_id 
+                   LEFT JOIN sfl_offer_geo g 
+                          ON g.id = o.sfl_offer_geo_id                       
         `)
         await dbMysql.end()
         // console.log(`\nget offerInfo count: ${result.length}`)
