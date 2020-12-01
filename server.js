@@ -284,7 +284,7 @@ setInterval(async () => {
             metrics.influxdb(500, `fileSizeCampaignsNotExists'`)
         }
 
-        // console.log('fileSizeOffer:', fileSizeOffer)
+        console.log('fileSizeOffer:', fileSizeOffer)
         // console.log('fileSizeCampaign:', fileSizeCampaign)
         if (fileSizeOffer && fileSizeCampaign) {
             metrics.sendMetricsSystem(
