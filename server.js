@@ -305,7 +305,8 @@ setInterval(async () => {
 
     try {
         if (config.env === 'development') return
-        console.log('\nCreate files campaign and offer')
+        const computerName = os.hostname()
+        console.log(`\nCreate files campaign and offer, computerName:${computerName}`)
         let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]
         let file2 = files[1]
@@ -328,7 +329,7 @@ setTimeout(async () => {
 
     // if (config.env === 'development') return
 
-    console.log('create recipe file first time')
+    console.log('Create recipe file first time')
     try {
         let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]
