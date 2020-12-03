@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js --conf=/run/secrets/sfl-offers.js",
+    "start": "node server.js --conf=/run/secrets/sfl-offers-prod.js",
     "startStage": "NODE_ENV=staging node server.js --conf=/run/secrets/sfl-offers.js"
   },
   "author": "",
