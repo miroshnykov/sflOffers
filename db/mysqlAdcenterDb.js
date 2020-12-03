@@ -5,7 +5,7 @@ module.exports = {
 
     get: () => {
         if (!mysqlAdcenterDb) {
-            console.log(`\n\x1b[35mFirst init adcenter DB \x1b[0m`)
+            console.log(`\n\x1b[35mFirst init adcenter DB  \x1b[0m`)
             const {host, database, user, password, port} = config.mysql
             // console.log(`host:{ ${host} },user:{ ${user} },database:{ ${database} }`)
             let mysqlConfig = {
