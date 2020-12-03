@@ -1,6 +1,7 @@
 FROM ubuntu:18.04
 ARG node_version=12.16.1
 
+
 #COPY tests/run_docker_tests.sh /usr/local/bin/run_docker_tests.sh
 RUN rm -rf /var/lib/apt/lists/*
 
@@ -28,4 +29,17 @@ RUN npm install
 
 EXPOSE 8091
 
-ENTRYPOINT redis-server --daemonize yes && npm start
+
+# Required to push into different branchs.
+ARG branch
+ENV BRANCH=${branch}
+
+RUN if [ "$BRANCH" = "stage1" ] ; then \
+        npm run stage1 ; \
+    elif [ "$BRANCH" = "stage2" ] ; then \
+        npm run stage2 ; \
+    else \
+        npm run prod ; \
+    fi
+
+ENTRYPOINT redis-server --daemonize yes
