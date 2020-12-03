@@ -34,6 +34,8 @@ EXPOSE 8091
 ARG branch
 ENV BRANCH=${branch}
 
+RUN redis-server --daemonize yes
+
 RUN if [ "$BRANCH" = "stage1" ] ; then \
         npm run stage1 ; \
     elif [ "$BRANCH" = "stage2" ] ; then \
@@ -42,4 +44,4 @@ RUN if [ "$BRANCH" = "stage1" ] ; then \
         npm run prod ; \
     fi
 
-ENTRYPOINT redis-server --daemonize yes
+#ENTRYPOINT redis-server --daemonize yes && <echo "$BRANCH")
