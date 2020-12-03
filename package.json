@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js --conf=/run/secrets/sfl-offers-prod.js",
-    "startStage": "NODE_ENV=staging node server.js --conf=/run/secrets/sfl-offers.js"
+    "startStage": "NODE_ENV=staging node server.js --conf=/run/secrets/sfl-offers-stage1.js"
   },
   "author": "",
   "license": "ISC",
