@@ -36,12 +36,10 @@ ENV BRANCH=${branch}
 
 RUN redis-server --daemonize yes
 
-RUN if [ "$BRANCH" = "stage1" ] ; then \
+ENTRYPOINT redis-server --daemonize yes && if [ "$BRANCH" = "stage1" ] ; then \
         npm run stage1 ; \
     elif [ "$BRANCH" = "stage2" ] ; then \
         npm run stage2 ; \
     else \
         npm run prod ; \
     fi
-
-#ENTRYPOINT redis-server --daemonize yes && <echo "$BRANCH")
