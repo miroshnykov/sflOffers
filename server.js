@@ -129,6 +129,8 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
     try {
 
         let files = await getLocalFiles(config.recipe.folder)
+        console.log('forceCreateRecipeFileDebug:', files)
+        console.log('forceCreateRecipeRecipe:', config.recipe)
         let file1 = files[0]
         let file2 = files[1]
         if (file1) {
@@ -144,9 +146,14 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
         // let file2Size = await getFileSize(file2)
         // console.log(file1Size)
         // console.log(file2Size)
-        response.files1 = `${files[0]}`
-        response.files2 = `${files[1]}`
-        response.done = 'recipe created'
+        if (file2 && file1) {
+            response.files1 = `${files[0]}`
+            response.files2 = `${files[1]}`
+            response.done = 'recipe created'
+        } else {
+            response.done = 'files does not exists.Recipe did not created '
+        }
+
         res.send(response)
 
     } catch (e) {
@@ -268,6 +275,7 @@ setInterval(async () => {
     if (config.env === 'development') return
     try {
         let files = await getLocalFiles(config.recipe.folder)
+        console.log('getLocalFilesDebug:', files)
         let file1 = files[0]
         let file2 = files[1]
         let fileSizeOffer
@@ -308,6 +316,8 @@ setInterval(async () => {
         const computerName = os.hostname()
         console.log(`\nCreate files campaign and offer, computerName:${computerName}`)
         let files = await getLocalFiles(config.recipe.folder)
+        console.log('GetLocalFilesForCreateRecipeDebug:', files)
+        console.log('ConfigRecipeFolder:', config.recipe)
         let file1 = files[0]
         let file2 = files[1]
         if (file1) {
@@ -327,7 +337,7 @@ setInterval(async () => {
 
 setTimeout(async () => {
 
-    // if (config.env === 'development') return
+    if (config.env === 'development') return
 
     console.log('Create recipe file first time')
     try {

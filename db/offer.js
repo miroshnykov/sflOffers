@@ -32,18 +32,50 @@ const offerInfo = async () => {
 const campaigns = async () => {
 
     try {
-        let result = await dbMysql.query(` 
-            SELECT 
-                c.id AS campaignId,
-                c.sfl_offer_id AS offerId, 
-                c.affiliate_id AS affiliateId,
-                c.rules 
-            FROM sfl_offer_campaigns c 
-            WHERE c.status = 'active'  AND rules != ''                        
+        let campaignsList = await dbMysql.query(` 
+            SELECT c.id                                    AS campaignId, 
+                   c.name                                  AS name, 
+                   c.sfl_offer_id                          AS offerId, 
+                   c.affiliate_id                          AS affiliateId, 
+                   (SELECT Count(*) 
+                    FROM   sfl_offer_campaign_rules r 
+                    WHERE  r.sfl_offer_campaign_id = c.id) AS countRules 
+            FROM   sfl_offer_campaigns c 
+            WHERE  c.status = 'active'             
         `)
         await dbMysql.end()
+
+        let campaignsRules = []
+
+        let ids = ''
+        for (const camp of campaignsList) {
+            ids += camp.campaignId + ','
+            campaignsRules.push(camp)
+        }
+        let idsString = ids.slice(0, -1)
+
+        let rules = await dbMysql.query(`
+            SELECT r.rules AS rules, 
+                   r.position AS position, 
+                   r.sfl_offer_campaign_id AS campaignId 
+            FROM   sfl_offer_campaign_rules r 
+            WHERE  r.status = 'active' 
+                   AND r.sfl_offer_campaign_id IN ( ${idsString}) 
+            ORDER BY r.sfl_offer_campaign_id,r.position ASC 
+
+        `)
+        await dbMysql.end()
+
+        let campaignsRulesList = []
+        for (const camp of campaignsList) {
+            let pRules = rules.filter(item => (item.campaignId === camp.campaignId))
+            camp.targetRules = pRules
+            campaignsRulesList.push(camp)
+        }
+
+        // console.log(campaignsRulesList)
         // console.log(`\nget campaigns count: ${result.length}`)
-        return result
+        return campaignsRulesList
     } catch (e) {
         console.log(e)
     }
