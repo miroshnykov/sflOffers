@@ -144,9 +144,14 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
         // let file2Size = await getFileSize(file2)
         // console.log(file1Size)
         // console.log(file2Size)
-        response.files1 = `${files[0]}`
-        response.files2 = `${files[1]}`
-        response.done = 'recipe created'
+        if (file2 && file1) {
+            response.files1 = `${files[0]}`
+            response.files2 = `${files[1]}`
+            response.done = 'recipe created'
+        } else {
+            response.done = 'files does not exists.Recipe did not created '
+        }
+
         res.send(response)
 
     } catch (e) {
