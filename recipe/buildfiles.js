@@ -5,7 +5,7 @@ let path = require('path')
 const os = require('os')
 const config = require('plain-config')()
 
-const {campaigns, offerInfo} = require('../db/offer')
+const {campaigns, getOffer, offerInfo} = require('../db/offer')
 const {
     generateFilePath,
     createRecursiveFolder,
@@ -76,13 +76,39 @@ const createRecipeOffers = async () => {
     // ************** CREATE ZIP FILE
     try {
         let offerData = await offerInfo()
-        const computerName = os.hostname()
-        console.log(`get offer count:${offerData.length}, from computer:${computerName} `)
 
         if (offerData.length === 0) {
             console.log(`No offers data`)
             return
         }
+
+        let offerFormat = []
+        for (const offer of offerData) {
+            // console.log(offer.offerId)
+            const {capRedirectOfferDay, capRedirectOfferWeek, capRedirectOfferMonth} = offer
+            if (
+                capRedirectOfferDay
+                || capRedirectOfferWeek
+                || capRedirectOfferMonth) {
+                let capOverrideOfferId = capRedirectOfferDay || capRedirectOfferWeek || capRedirectOfferMonth
+
+                console.log('capOverrideOfferId:', capOverrideOfferId)
+                let offerInfo = await getOffer(capOverrideOfferId)
+                // console.log(offerInfo)
+                offer.landingPageIdOrigin = offer.landingPageId
+                offer.landingPageUrlOrigin = offer.landingPageUrl
+                offer.landingPageId = offerInfo[0].landingPageId
+                offer.landingPageUrl = offerInfo[0].landingPageUrl
+                offer.capOverrideOfferId = offerInfo[0].offerId
+
+            }
+
+            offerFormat.push(offer)
+        }
+
+        const computerName = os.hostname()
+        console.log(`get offer count:${offerData.length}, from computer:${computerName} `)
+
 
         let filePath = config.recipe.folder + await generateFilePath('offer')
         // console.log('filePath', filePath)
@@ -101,7 +127,7 @@ const createRecipeOffers = async () => {
 
         transformStream.pipe(outputStream);
 
-        offerData.forEach(transformStream.write);
+        offerFormat.forEach(transformStream.write);
 
         transformStream.end();
 

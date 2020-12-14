@@ -47,6 +47,26 @@ const offerInfo = async () => {
     }
 }
 
+const getOffer = async (id) => {
+    try {
+        let result = await dbMysql.query(` 
+            SELECT o.id   AS offerId, 
+                   o.name AS name, 
+                   lp.id  AS landingPageId, 
+                   lp.url AS landingPageUrl 
+            FROM   sfl_offers o 
+                   LEFT JOIN sfl_offer_landing_pages lp 
+                          ON lp.id = o.sfl_offer_landing_page_id   
+            WHERE o.id = ${id}                                                    
+        `)
+        await dbMysql.end()
+        // console.log(`\nget offerInfo count: ${result.length}`)
+        return result
+    } catch (e) {
+        console.log(e)
+    }
+}
+
 const campaigns = async () => {
 
     try {
@@ -114,6 +134,7 @@ const insertOffer = async () => {
 }
 module.exports = {
     offerInfo,
+    getOffer,
     insertOffer,
     campaigns
 }

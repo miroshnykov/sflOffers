@@ -124,6 +124,45 @@ app.get('/sqs', async (req, res, next) => {
     }
 })
 
+const {offerInfo, getOffer} = require('./db/offer')
+
+app.get('/testOffer', async (req, res, next) => {
+    let response = {}
+    try {
+        let offerData = await offerInfo()
+        let offerFormat =[]
+        for (const offer of offerData) {
+            console.log(offer.offerId)
+            const {capRedirectOfferDay,capRedirectOfferWeek,capRedirectOfferMonth} = offer
+            if (
+                capRedirectOfferDay
+                || capRedirectOfferWeek
+                || capRedirectOfferMonth) {
+                let overrideOfferId = capRedirectOfferDay || capRedirectOfferWeek || capRedirectOfferMonth
+
+                console.log('overrideOfferId:',overrideOfferId)
+                let offerInfo = await getOffer(overrideOfferId)
+                console.log(offerInfo)
+                offer.landingPageIdOrigin = offer.landingPageId
+                offer.landingPageUrlOrigin = offer.landingPageUrl
+                offer.landingPageId = offerInfo[0].landingPageId
+                offer.landingPageUrl = offerInfo[0].landingPageUrl
+                offer.capOverrideOfferId = offerInfo[0].offerId
+
+            }
+
+            offerFormat.push(offer)
+        }
+        response.offerFormat = offerFormat
+        res.send(response)
+    } catch (e) {
+        response.err = 'error sqs' + JSON.stringify(e)
+        console.log(e)
+        res.send(response)
+    }
+})
+
+
 app.get('/forceCreateRecipe', async (req, res, next) => {
     let response = {}
     try {
