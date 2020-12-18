@@ -6,6 +6,7 @@ const os = require('os')
 const config = require('plain-config')()
 
 const {campaigns, getOffer, offerInfo} = require('../db/offer')
+const {affInfo} = require('../db/aff')
 const {
     generateFilePath,
     createRecursiveFolder,
@@ -151,7 +152,50 @@ const createRecipeOffers = async () => {
 
 }
 
+const createRecipeAffiliates = async () => {
+    try {
+        let affData = await affInfo()
+
+        if (affData.length === 0) {
+            console.log(`No affiliates  data`)
+            return
+        }
+
+        const computerName = os.hostname()
+        console.log(`get affiliates count:${affData.length}, from computer:${computerName} `)
+        let filePath = config.recipe.folder + await generateFilePath('affiliates')
+        let fileFolder = path.dirname(filePath);
+        await createRecursiveFolder(fileFolder)
+
+        let transformStream = JSONStream.stringify();
+        let outputStream = fileSystem.createWriteStream(filePath);
+
+        transformStream.pipe(outputStream);
+
+        affData.forEach(transformStream.write);
+
+        transformStream.end();
+
+        outputStream.on(
+            "finish",
+            async function handleFinish() {
+                await compressFileZlibSfl(filePath)
+                await deleteFile(filePath)
+                // metrics.influxdb(200, `sizeOfCampaigns-${sizeCampaign}`)
+                console.log(`File Affiliates created path:${filePath}`)
+
+            }
+        )
+    } catch (e) {
+        metrics.influxdb(500, `createRecipeAffiliatesError'`)
+        console.log('createRecipeAffiliatesError:', e)
+    }
+
+
+}
+
 module.exports = {
     createRecipeCampaign,
-    createRecipeOffers
+    createRecipeOffers,
+    createRecipeAffiliates
 }
