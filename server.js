@@ -219,10 +219,12 @@ io.on('connection', async (socket) => {
 
         if (clients.length < LIMIT_CLIENTS) {
             clients.push(socket.id)
+            metrics.sendMetricsCountOfClients(clients.length)
             // metrics.influxdb(200, `countOfClients-${clients.length}`)
             console.log(`New client just connected: ${socket.id} `)
         } else {
             console.log(`Clients more then ${LIMIT_CLIENTS}`)
+            metrics.influxdb(500, `clientsMoreThen60Error`)
         }
     }
 
@@ -327,7 +329,8 @@ io.on('connection', async (socket) => {
 
     socket.on('disconnect', () => {
         clients.splice(clients.indexOf(socket.id, 1))
-        // metrics.influxdb(200, `countOfClients-${clients.length}`)
+        metrics.sendMetricsCountOfClients(clients.length)
+
         console.log(`disconnect ${socket.id}, Count of client: ${clients.length} `);
         clearInterval(updRedis[socket.id])
         // console.log(`disconnect clients:`, clients);
