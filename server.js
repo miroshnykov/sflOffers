@@ -221,7 +221,7 @@ io.on('connection', async (socket) => {
             clients.push(socket.id)
             metrics.sendMetricsCountOfClients(clients.length)
             // metrics.influxdb(200, `countOfClients-${clients.length}`)
-            console.log(`New client just connected: ${socket.id} `)
+            console.log(`New client just connected: ${socket.id} clientCount:${clients.length} `)
         } else {
             console.log(`Clients more then ${LIMIT_CLIENTS}`)
             metrics.influxdb(500, `clientsMoreThen60Error`)
