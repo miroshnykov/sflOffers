@@ -231,6 +231,7 @@ io.on('connection', async (socket) => {
     socket.on('sendFileCampaign', async () => {
 
         try {
+            metrics.sendMetricsCountOfClients(clients.length)
             let files = await getLocalFiles(config.recipe.folder)
 
             // console.log('files:', files)
