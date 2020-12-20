@@ -355,7 +355,8 @@ setInterval(async () => {
     if (config.env === 'development') return
     try {
         let files = await getLocalFiles(config.recipe.folder)
-        console.log(`getLocalFilesDebug:${JSON.stringify(files)}`)
+        const computerName = os.hostname()
+        console.log(`getLocalFilesDebug for computerName:${computerName}, files:${JSON.stringify(files)}`)
         let file1 = files[0] // aff
         let file2 = files[1] //camp
         let file3 = files[2]//offer
@@ -380,18 +381,16 @@ setInterval(async () => {
             metrics.influxdb(500, `fileSizeAffilaitesNotExists`)
         }
 
-        console.log(`fileSizeAffiliates:${fileSizeAffiliates}, fileSizeCampaign:${fileSizeCampaign}, fileSizeOffer:${fileSizeOffer}`)
+        console.log(`File size for computerName:${computerName}  fileSizeAffiliates:${fileSizeAffiliates}, fileSizeCampaign:${fileSizeCampaign}, fileSizeOffer:${fileSizeOffer}`)
 
         // console.log('fileSizeOffer:', fileSizeOffer)
         // console.log('fileSizeCampaign:', fileSizeCampaign)
-        if (fileSizeOffer && fileSizeCampaign && fileSizeAffiliates) {
-            metrics.sendMetricsSystem(
-                fileSizeOffer.toString(),
-                fileSizeCampaign.toString(),
-                fileSizeAffiliates.toString(),
-                clients.length || 0
-            )
-        }
+        metrics.sendMetricsSystem(
+            fileSizeOffer && fileSizeOffer.toString() || 0,
+            fileSizeCampaign && fileSizeCampaign.toString() || 0,
+            fileSizeAffiliates && fileSizeAffiliates.toString() || 0,
+            clients.length || 0
+        )
 
     } catch (e) {
         metrics.influxdb(500, `getFileSizeError'`)
@@ -405,10 +404,8 @@ setInterval(async () => {
     try {
         if (config.env === 'development') return
         const computerName = os.hostname()
-        console.log(`\nCreate files campaign and offer, computerName:${computerName}`)
         let files = await getLocalFiles(config.recipe.folder)
-        console.log('GetLocalFilesForCreateRecipeDebug:', files)
-        console.log('ConfigRecipeFolder:', config.recipe)
+        console.log(`\nCreate files campaign and offer, computerName:${computerName}, files:${JSON.stringify(files)}, ConfigRecipeFolder:${JSON.stringify(config.recipe)}  `)
         let file1 = files[0]
         let file2 = files[1]
         let file3 = files[2]
