@@ -355,7 +355,7 @@ setInterval(async () => {
     if (config.env === 'development') return
     try {
         let files = await getLocalFiles(config.recipe.folder)
-        console.log('getLocalFilesDebug:', files)
+        console.log(`getLocalFilesDebug:${JSON.stringify(files)}`)
         let file1 = files[0] // aff
         let file2 = files[1] //camp
         let file3 = files[2]//offer
@@ -365,24 +365,26 @@ setInterval(async () => {
         if (file3) {
             fileSizeOffer = await getFileSize(file3) || 0
         } else {
-            metrics.influxdb(500, `fileSizeOffersNotExists'`)
+            metrics.influxdb(500, `fileSizeOffersNotExists`)
         }
 
         if (file2) {
             fileSizeCampaign = await getFileSize(file2) || 0
         } else {
-            metrics.influxdb(500, `fileSizeCampaignsNotExists'`)
+            metrics.influxdb(500, `fileSizeCampaignsNotExists`)
         }
 
         if (file1) {
             fileSizeAffiliates = await getFileSize(file1) || 0
         } else {
-            metrics.influxdb(500, `fileSizeAffilaitesNotExists'`)
+            metrics.influxdb(500, `fileSizeAffilaitesNotExists`)
         }
+
+        console.log(`fileSizeAffiliates:${fileSizeAffiliates}, fileSizeCampaign:${fileSizeCampaign}, fileSizeOffer:${fileSizeOffer}`)
 
         // console.log('fileSizeOffer:', fileSizeOffer)
         // console.log('fileSizeCampaign:', fileSizeCampaign)
-        if (fileSizeOffer && fileSizeCampaign) {
+        if (fileSizeOffer && fileSizeCampaign && fileSizeAffiliates) {
             metrics.sendMetricsSystem(
                 fileSizeOffer.toString(),
                 fileSizeCampaign.toString(),
