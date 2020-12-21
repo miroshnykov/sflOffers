@@ -393,7 +393,8 @@ setInterval(async () => {
         )
 
     } catch (e) {
-        metrics.influxdb(500, `getFileSizeError'`)
+        console.log('getFilesSizeError:', e)
+        metrics.influxdb(500, `getFilesSizeError'`)
     }
 
 }, 65000)
