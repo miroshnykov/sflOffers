@@ -15,6 +15,7 @@ const offerInfo = async () => {
                    o.sfl_offer_geo_id              AS sflOfferGeoId, 
                    g.rules                         AS geoRules, 
                    g.sfl_offer_id                  AS geoOfferId, 
+                   lps.rules                       AS customLpRules,
                    (SELECT IF(c1.clicks_day - (SELECT c.clicks_day 
                                                FROM   sfl_offers_cap_current_data c 
                                                WHERE  c.sfl_offer_id = o.id) > 0, NULL, 
@@ -37,7 +38,9 @@ const offerInfo = async () => {
                    left join sfl_offer_landing_pages lp 
                           ON lp.id = o.sfl_offer_landing_page_id 
                    left join sfl_offer_geo g 
-                          ON g.id = o.sfl_offer_geo_id                     
+                          ON g.id = o.sfl_offer_geo_id   
+                   left join sfl_offer_custom_landing_pages lps
+                          ON o.id = lps.sfl_offer_id                                            
         `)
         await dbMysql.end()
         // console.log(`\nget offerInfo count: ${result.length}`)
