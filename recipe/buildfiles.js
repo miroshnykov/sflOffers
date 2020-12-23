@@ -6,6 +6,7 @@ const os = require('os')
 const config = require('plain-config')()
 
 const {campaigns, getOffer, offerInfo} = require('../db/offer')
+const {affiliateWebsites} = require('../db/affiliateWebsites')
 const {affInfo} = require('../db/aff')
 const {
     generateFilePath,
@@ -71,6 +72,62 @@ const createRecipeCampaign = async () => {
 
 
 }
+
+
+const createRecipeAffiliateWebsite = async () => {
+    try {
+        let affiliateWebsiteData = await affiliateWebsites()
+
+        let affiliateWebsiteDataFormat = []
+        for (const aff of affiliateWebsiteData) {
+            if (aff.sites) {
+                let sites = aff.sites.split(';')
+
+                let obj = {}
+                obj.sites = []
+                sites.forEach(url => {
+                    obj.sites.push({url: url})
+
+                })
+                affiliateWebsiteDataFormat.push({affiliateId: aff.affiliatesId, sites: JSON.stringify(obj)})
+            }
+
+        }
+
+        if (affiliateWebsiteDataFormat.length === 0) {
+            console.log(`No affilaiteWebsites data`)
+            return
+        }
+        let filePath = config.recipe.folder + await generateFilePath('affiliateWebsites')
+        let fileFolder = path.dirname(filePath);
+        await createRecursiveFolder(fileFolder)
+
+        let transformStream = JSONStream.stringify();
+        let outputStream = fileSystem.createWriteStream(filePath);
+
+        transformStream.pipe(outputStream);
+
+        affiliateWebsiteDataFormat.forEach(transformStream.write);
+
+        transformStream.end();
+
+        outputStream.on(
+            "finish",
+            async function handleFinish() {
+                await compressFileZlibSfl(filePath)
+                await deleteFile(filePath)
+                console.log(`File AffiliateWebsites created path:${filePath}`)
+
+            }
+        );
+    } catch (e) {
+        metrics.influxdb(500, `createRecipeAffiliateWebsitesError'`)
+        console.log('createRecipeAffiliateWebsitesError:', e)
+    }
+
+
+}
+
 const createRecipeOffers = async () => {
     // console.log('createfile with offers')
     // console.time('createFileOffers')
@@ -197,5 +254,6 @@ const createRecipeAffiliates = async () => {
 module.exports = {
     createRecipeCampaign,
     createRecipeOffers,
-    createRecipeAffiliates
+    createRecipeAffiliates,
+    createRecipeAffiliateWebsite
 }
