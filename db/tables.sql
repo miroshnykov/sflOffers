@@ -83,6 +83,31 @@ COLLATE='utf8_general_ci'
 ENGINE=InnoDB
 ;
 
+CREATE TABLE `sfl_offer_custom_landing_pages` (
+	`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`rules` TEXT NOT NULL,
+	`sfl_offer_id` INT(10) UNSIGNED NOT NULL,
+	`date_added` INT(11) NOT NULL,
+	`date_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX `lp_offer_id_UNIQUE` (`sfl_offer_id`),
+	INDEX `fk_v_sfl_custom_lp` (`sfl_offer_id`),
+	CONSTRAINT `fk_v_sfl_custom_lp` FOREIGN KEY (`sfl_offer_id`) REFERENCES `sfl_offers` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB
+;
+
+INSERT INTO `sfl_offer_custom_landing_pages`
+            (`rules`,
+             `sfl_offer_id`)
+VALUES      (
+'{"sflOfferCustomLandingPages":[{"url":"testLP1.com","country":"CA"},{"url":"testLP2.com","country":"US"},{"url":"testLP3.com","country":"FR"}]}'
+,
+'25'
+);
+
+
 
 INSERT INTO `sfl_offer_geo` (`rules`, `sfl_offer_id`, `date_added`) VALUES ('{"geo":[{"include":true,"country":"CA"},{"include":false,"country":"US"},{"include":false,"country":"US"}]}', '17','1606753419');
 

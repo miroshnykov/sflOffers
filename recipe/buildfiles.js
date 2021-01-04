@@ -5,7 +5,9 @@ let path = require('path')
 const os = require('os')
 const config = require('plain-config')()
 
-const {campaigns, offerInfo} = require('../db/offer')
+const {campaigns, getOffer, offerInfo} = require('../db/offer')
+const {affiliateWebsites} = require('../db/affiliateWebsites')
+const {affInfo} = require('../db/aff')
 const {
     generateFilePath,
     createRecursiveFolder,
@@ -70,19 +72,101 @@ const createRecipeCampaign = async () => {
 
 
 }
+
+
+const createRecipeAffiliateWebsite = async () => {
+    try {
+        let affiliateWebsiteData = await affiliateWebsites()
+
+        let affiliateWebsiteDataFormat = []
+        for (const aff of affiliateWebsiteData) {
+            if (aff.sites) {
+                let sites = aff.sites.split(';')
+
+                let obj = {}
+                obj.sites = []
+                sites.forEach(url => {
+                    obj.sites.push({url: url})
+
+                })
+                affiliateWebsiteDataFormat.push({affiliateId: aff.affiliatesId, sites: JSON.stringify(obj)})
+            }
+
+        }
+
+        if (affiliateWebsiteDataFormat.length === 0) {
+            console.log(`No affilaiteWebsites data`)
+            return
+        }
+        let filePath = config.recipe.folder + await generateFilePath('affiliateWebsites')
+        let fileFolder = path.dirname(filePath);
+        await createRecursiveFolder(fileFolder)
+
+        let transformStream = JSONStream.stringify();
+        let outputStream = fileSystem.createWriteStream(filePath);
+
+        transformStream.pipe(outputStream);
+
+        affiliateWebsiteDataFormat.forEach(transformStream.write);
+
+        transformStream.end();
+
+        outputStream.on(
+            "finish",
+            async function handleFinish() {
+                await compressFileZlibSfl(filePath)
+                await deleteFile(filePath)
+                console.log(`File AffiliateWebsites created path:${filePath}`)
+
+            }
+        );
+    } catch (e) {
+        metrics.influxdb(500, `createRecipeAffiliateWebsitesError'`)
+        console.log('createRecipeAffiliateWebsitesError:', e)
+    }
+
+
+}
+
 const createRecipeOffers = async () => {
     // console.log('createfile with offers')
     // console.time('createFileOffers')
     // ************** CREATE ZIP FILE
     try {
         let offerData = await offerInfo()
-        const computerName = os.hostname()
-        console.log(`get offer count:${offerData.length}, from computer:${computerName} `)
 
         if (offerData.length === 0) {
             console.log(`No offers data`)
             return
         }
+
+        let offerFormat = []
+        for (const offer of offerData) {
+            // console.log(offer.offerId)
+            const {capRedirectOfferDay, capRedirectOfferWeek, capRedirectOfferMonth} = offer
+            if (
+                capRedirectOfferDay
+                || capRedirectOfferWeek
+                || capRedirectOfferMonth) {
+                let capOverrideOfferId = capRedirectOfferDay || capRedirectOfferWeek || capRedirectOfferMonth
+
+                console.log('capOverrideOfferId:', capOverrideOfferId)
+                let offerInfo = await getOffer(capOverrideOfferId)
+                // console.log(offerInfo)
+                offer.landingPageIdOrigin = offer.landingPageId
+                offer.landingPageUrlOrigin = offer.landingPageUrl
+                offer.landingPageId = offerInfo[0].landingPageId
+                offer.landingPageUrl = offerInfo[0].landingPageUrl
+                offer.capOverrideOfferId = offerInfo[0].offerId
+
+            }
+
+            offerFormat.push(offer)
+        }
+
+        const computerName = os.hostname()
+        console.log(`get offer count:${offerData.length}, from computer:${computerName} `)
+
 
         let filePath = config.recipe.folder + await generateFilePath('offer')
         // console.log('filePath', filePath)
@@ -101,7 +185,7 @@ const createRecipeOffers = async () => {
 
         transformStream.pipe(outputStream);
 
-        offerData.forEach(transformStream.write);
+        offerFormat.forEach(transformStream.write);
 
         transformStream.end();
 
@@ -125,7 +209,51 @@ const createRecipeOffers = async () => {
 
 }
 
+const createRecipeAffiliates = async () => {
+    try {
+        let affData = await affInfo()
+
+        if (affData.length === 0) {
+            console.log(`No affiliates  data`)
+            return
+        }
+
+        const computerName = os.hostname()
+        console.log(`get affiliates count:${affData.length}, from computer:${computerName} `)
+        let filePath = config.recipe.folder + await generateFilePath('affiliates')
+        let fileFolder = path.dirname(filePath);
+        await createRecursiveFolder(fileFolder)
+
+        let transformStream = JSONStream.stringify();
+        let outputStream = fileSystem.createWriteStream(filePath);
+
+        transformStream.pipe(outputStream);
+
+        affData.forEach(transformStream.write);
+
+        transformStream.end();
+
+        outputStream.on(
+            "finish",
+            async function handleFinish() {
+                await compressFileZlibSfl(filePath)
+                await deleteFile(filePath)
+                // metrics.influxdb(200, `sizeOfCampaigns-${sizeCampaign}`)
+                console.log(`File Affiliates created path:${filePath}`)
+
+            }
+        )
+    } catch (e) {
+        metrics.influxdb(500, `createRecipeAffiliatesError'`)
+        console.log('createRecipeAffiliatesError:', e)
+    }
+
+
+}
+
 module.exports = {
     createRecipeCampaign,
-    createRecipeOffers
+    createRecipeOffers,
+    createRecipeAffiliates,
+    createRecipeAffiliateWebsite
 }

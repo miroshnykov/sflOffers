@@ -11,7 +11,12 @@ const {
     getLocalFiles
 } = require('./lib/zipOffer')
 
-const {createRecipeCampaign, createRecipeOffers} = require('./recipe/buildfiles')
+const {
+    createRecipeCampaign,
+    createRecipeOffers,
+    createRecipeAffiliates,
+    createRecipeAffiliateWebsite
+} = require('./recipe/buildfiles')
 const {deleteFile} = require('./lib/zipOffer')
 const {encrypt, decrypt} = require('./lib/encrypt')
 const {sqsProcess} = require('./sqs/sqs')
@@ -88,10 +93,16 @@ app.get('/files', async (req, res, next) => {
         response.files = files
         response.files1 = files[0]
         response.files2 = files[1]
+        response.files3 = files[2]
+        response.files4 = files[3]
         let size1 = await getFileSize(files[0])
         let size2 = await getFileSize(files[1])
+        let size3 = await getFileSize(files[2])
+        let size4 = await getFileSize(files[3])
         response.files1Size = formatByteSize(size1)
         response.files2Size = formatByteSize(size2)
+        response.files3Size = formatByteSize(size3)
+        response.files4Size = formatByteSize(size4)
         response.countsOfClients = clients.length || 0
 
         const computerName = os.hostname()
@@ -124,6 +135,76 @@ app.get('/sqs', async (req, res, next) => {
     }
 })
 
+const {offerInfo, getOffer} = require('./db/offer')
+
+app.get('/testOffer', async (req, res, next) => {
+    let response = {}
+    try {
+        let offerData = await offerInfo()
+        let offerFormat = []
+        for (const offer of offerData) {
+            console.log(offer.offerId)
+            const {capRedirectOfferDay, capRedirectOfferWeek, capRedirectOfferMonth} = offer
+            if (
+                capRedirectOfferDay
+                || capRedirectOfferWeek
+                || capRedirectOfferMonth) {
+                let overrideOfferId = capRedirectOfferDay || capRedirectOfferWeek || capRedirectOfferMonth
+
+                console.log('overrideOfferId:', overrideOfferId)
+                let offerInfo = await getOffer(overrideOfferId)
+                console.log(offerInfo)
+                offer.landingPageIdOrigin = offer.landingPageId
+                offer.landingPageUrlOrigin = offer.landingPageUrl
+                offer.landingPageId = offerInfo[0].landingPageId
+                offer.landingPageUrl = offerInfo[0].landingPageUrl
+                offer.capOverrideOfferId = offerInfo[0].offerId
+
+            }
+
+            offerFormat.push(offer)
+        }
+        response.offerFormat = offerFormat
+        res.send(response)
+    } catch (e) {
+        response.err = 'error sqs' + JSON.stringify(e)
+        console.log(e)
+        res.send(response)
+    }
+})
+
+
+const {affiliateWebsites} = require('./db/affiliateWebsites')
+app.get('/testAffiliateWebsites', async (req, res, next) => {
+    let response = {}
+    try {
+        let affiliateWebsitesData = await affiliateWebsites()
+        let affWebsitesFormat = []
+        for (const aff of affiliateWebsitesData) {
+            if (aff.sites) {
+                let sites = aff.sites.split(';')
+
+                let obj = {}
+                obj.sites = []
+                sites.forEach(url => {
+                    obj.sites.push({url: url})
+
+                })
+                affWebsitesFormat.push({affiliateId: aff.affiliatesId, sites: JSON.stringify(obj)})
+            }
+
+
+        }
+        response.affiliateWebsitesData = affWebsitesFormat
+        res.send(response)
+    } catch (e) {
+        response.err = 'error testAffiliateWebsites' + JSON.stringify(e)
+        console.log(e)
+        res.send(response)
+    }
+})
+
+
 app.get('/forceCreateRecipe', async (req, res, next) => {
     let response = {}
     try {
@@ -133,25 +214,37 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
         console.log('forceCreateRecipeRecipe:', config.recipe)
         let file1 = files[0]
         let file2 = files[1]
+        let file3 = files[2]
+        let file4 = files[3]
         if (file1) {
             await deleteFile(file1)
         }
         if (file2) {
             await deleteFile(file2)
         }
+        if (file3) {
+            await deleteFile(file3)
+        }
+        if (file4) {
+            await deleteFile(file4)
+        }
         await createRecipeCampaign()
         await createRecipeOffers()
+        await createRecipeAffiliates()
+        await createRecipeAffiliateWebsite()
 
         // let file1Size = await getFileSize(file1)
         // let file2Size = await getFileSize(file2)
         // console.log(file1Size)
         // console.log(file2Size)
-        if (file2 && file1) {
+        if (file1 && file2 && file3 && file4) {
             response.files1 = `${files[0]}`
             response.files2 = `${files[1]}`
+            response.files3 = `${files[2]}`
+            response.files4 = `${files[3]}`
             response.done = 'recipe created'
         } else {
-            response.done = 'files does not exists.Recipe did not created '
+            response.done = 'files does not exists. but Recipe created first time '
         }
 
         res.send(response)
@@ -170,20 +263,76 @@ io.on('connection', async (socket) => {
 
         if (clients.length < LIMIT_CLIENTS) {
             clients.push(socket.id)
+            metrics.sendMetricsCountOfClients(clients.length)
             // metrics.influxdb(200, `countOfClients-${clients.length}`)
-            console.log(`New client just connected: ${socket.id} `)
+            console.log(`New client just connected: ${socket.id} clientCount:${clients.length} `)
         } else {
             console.log(`Clients more then ${LIMIT_CLIENTS}`)
+            metrics.influxdb(500, `clientsMoreThen60Error`)
         }
     }
 
-    socket.on('sendFileCampaign', async () => {
+    socket.on('sendFileAffiliateWebsites', async () => {
 
         try {
             let files = await getLocalFiles(config.recipe.folder)
 
-            // console.log('files:', files)
+            console.log('FILE:',files)
             let file = files[0]
+            if (!file) {
+                console.log(`no files in folder:${config.recipe.folder}`)
+                return
+            }
+            let stream = ss.createStream();
+            stream.on('end', () => {
+                console.log(`file:${file} sent to soket ID:${socket.id}`);
+                metrics.influxdb(200, `sendFileAffiliateWebsites`)
+            });
+            ss(socket).emit('sendingAffiliateWebsites', stream);
+            fs.createReadStream(file).pipe(stream);
+
+        } catch (e) {
+            console.log('sendFileAffiliatesError:', e)
+            metrics.influxdb(500, `sendFileAffiliatesError`)
+        }
+
+    })
+
+    socket.on('sendFileAffiliates', async () => {
+
+        try {
+            let files = await getLocalFiles(config.recipe.folder)
+
+            let file = files[1]
+            if (!file) {
+                console.log(`no files in folder:${config.recipe.folder}`)
+                return
+            }
+            let stream = ss.createStream();
+            stream.on('end', () => {
+                console.log(`file:${file} sent to soket ID:${socket.id}`);
+                metrics.influxdb(200, `sendFileAffiliates`)
+            });
+            ss(socket).emit('sendingAffiliates', stream);
+            fs.createReadStream(file).pipe(stream);
+
+        } catch (e) {
+            console.log('sendFileAffiliatesError:', e)
+            metrics.influxdb(500, `sendFileAffiliatesError`)
+        }
+
+    })
+
+
+
+    socket.on('sendFileCampaign', async () => {
+
+        try {
+            metrics.sendMetricsCountOfClients(clients.length)
+            let files = await getLocalFiles(config.recipe.folder)
+
+            // console.log('files:', files)
+            let file = files[2]
 
             if (!file) {
                 console.log(`no files in folder:${config.recipe.folder}`)
@@ -209,7 +358,9 @@ io.on('connection', async (socket) => {
         try {
             let files = await getLocalFiles(config.recipe.folder)
 
-            let file = files[1]
+
+            let file = files[3]
+            console.log('sendFileOffer file:', file)
             if (!file) {
                 console.log(`no files in folder:${config.recipe.folder}`)
                 return
@@ -228,6 +379,7 @@ io.on('connection', async (socket) => {
         }
 
     })
+
 
     const sendUpdRedis = async () => {
         try {
@@ -251,7 +403,8 @@ io.on('connection', async (socket) => {
 
     socket.on('disconnect', () => {
         clients.splice(clients.indexOf(socket.id, 1))
-        // metrics.influxdb(200, `countOfClients-${clients.length}`)
+        metrics.sendMetricsCountOfClients(clients.length)
+
         console.log(`disconnect ${socket.id}, Count of client: ${clients.length} `);
         clearInterval(updRedis[socket.id])
         // console.log(`disconnect clients:`, clients);
@@ -267,7 +420,7 @@ io.on('connect', async (socket) => {
 
 server.listen({port: config.port}, () => {
     // metrics.influxdb(200, `serveReady`)
-    console.log(JSON.stringify(config))
+    // console.log(JSON.stringify(config))
     console.log(`\n🚀\x1b[35m Server ready at http://localhost:${config.port}, env:${config.env} \x1b[0m \n`)
 })
 
@@ -275,35 +428,61 @@ setInterval(async () => {
     if (config.env === 'development') return
     try {
         let files = await getLocalFiles(config.recipe.folder)
-        console.log('getLocalFilesDebug:', files)
-        let file1 = files[0]
-        let file2 = files[1]
+        const computerName = os.hostname()
+        console.log(`getLocalFilesDebug for computerName:${computerName}, files:${JSON.stringify(files)}`)
+        let file1 = files[0] // aff website
+        let file2 = files[1] //aff
+        let file3 = files[2]//camp
+        let file4 = files[3]//offer
         let fileSizeOffer
         let fileSizeCampaign
-        if (file2) {
-            fileSizeOffer = await getFileSize(file2) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeOffersNotExists'`)
-        }
+        let fileSizeAffiliates
+        let fileSizeAffiliateWebsites
+
 
         if (file1) {
-            fileSizeCampaign = await getFileSize(file1) || 0
+            fileSizeAffiliateWebsites = await getFileSize(file1) || 0
         } else {
-            metrics.influxdb(500, `fileSizeCampaignsNotExists'`)
+            metrics.influxdb(500, `fileSizeAffilaiteWebsitesNotExists`)
         }
 
-        console.log('fileSizeOffer:', fileSizeOffer)
-        // console.log('fileSizeCampaign:', fileSizeCampaign)
-        if (fileSizeOffer && fileSizeCampaign) {
-            metrics.sendMetricsSystem(
-                fileSizeOffer.toString(),
-                fileSizeCampaign.toString(),
-                clients.length || 0
-            )
+        if (file2) {
+            fileSizeAffiliates = await getFileSize(file2) || 0
+        } else {
+            metrics.influxdb(500, `fileSizeAffilaitesNotExists`)
         }
+
+
+        if (file3) {
+            fileSizeCampaign = await getFileSize(file3) || 0
+        } else {
+            metrics.influxdb(500, `fileSizeCampaignsNotExists`)
+        }
+
+
+        if (file4) {
+            fileSizeOffer = await getFileSize(file4) || 0
+        } else {
+            metrics.influxdb(500, `fileSizeOffersNotExists`)
+        }
+
+
+
+        console.log(`File size for computerName:${computerName}  fileSizeAffiliates:${fileSizeAffiliates}, fileSizeCampaign:${fileSizeCampaign}, fileSizeOffer:${fileSizeOffer}, fileSizeAffiliateWebsites:${fileSizeAffiliateWebsites}`)
+
+        // console.log('fileSizeOffer:', fileSizeOffer)
+        // console.log('fileSizeCampaign:', fileSizeCampaign)
+        metrics.sendMetricsSystem(
+            fileSizeOffer && fileSizeOffer.toString() || 0,
+            fileSizeCampaign && fileSizeCampaign.toString() || 0,
+            fileSizeAffiliates && fileSizeAffiliates.toString() || 0,
+            fileSizeAffiliateWebsites && fileSizeAffiliateWebsites.toString() || 0,
+            clients.length || 0
+        )
 
     } catch (e) {
-        metrics.influxdb(500, `getFileSizeError'`)
+        console.log('getFilesSizeError:', e)
+        metrics.influxdb(500, `getFilesSizeError'`)
     }
 
 }, 65000)
@@ -314,20 +493,30 @@ setInterval(async () => {
     try {
         if (config.env === 'development') return
         const computerName = os.hostname()
-        console.log(`\nCreate files campaign and offer, computerName:${computerName}`)
         let files = await getLocalFiles(config.recipe.folder)
-        console.log('GetLocalFilesForCreateRecipeDebug:', files)
-        console.log('ConfigRecipeFolder:', config.recipe)
+        console.log(`\nCreate files campaign and offer, computerName:${computerName}, files:${JSON.stringify(files)}, ConfigRecipeFolder:${JSON.stringify(config.recipe)}  `)
         let file1 = files[0]
         let file2 = files[1]
+        let file3 = files[2]
+        let file4 = files[3]
         if (file1) {
             await deleteFile(file1)
         }
         if (file2) {
             await deleteFile(file2)
         }
+        if (file3) {
+            await deleteFile(file3)
+        }
+
+        if (file4) {
+            await deleteFile(file4)
+        }
         await createRecipeCampaign()
         await createRecipeOffers()
+        await createRecipeAffiliates()
+        await createRecipeAffiliateWebsite()
+
     } catch (e) {
         metrics.influxdb(500, `createRecipeFileError'`)
         console.log('create files campaign and offer error:', e)
@@ -344,14 +533,25 @@ setTimeout(async () => {
         let files = await getLocalFiles(config.recipe.folder)
         let file1 = files[0]
         let file2 = files[1]
+        let file3 = files[2]
+        let file4 = files[3]
         if (file1) {
             await deleteFile(file1)
         }
         if (file2) {
             await deleteFile(file2)
         }
+        if (file3) {
+            await deleteFile(file3)
+        }
+
+        if (file4) {
+            await deleteFile(file4)
+        }
         await createRecipeCampaign()
         await createRecipeOffers()
+        await createRecipeAffiliates()
+        await createRecipeAffiliateWebsite()
     } catch (e) {
         metrics.influxdb(500, `createRecipeFileFirstTimeError'`)
         console.log('create files campaign and offer first time error:', e)

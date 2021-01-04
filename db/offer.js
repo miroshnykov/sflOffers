@@ -4,22 +4,63 @@ const offerInfo = async () => {
 
     try {
         let result = await dbMysql.query(` 
-            SELECT o.id               AS offerId, 
-                   o.name             AS name, 
-                   o.advertiser       AS advertiser, 
-                   o.status           AS status, 
-                   o.payin            AS payin, 
-                   o.payout           AS payout, 
-                   lp.id              AS landingPageId, 
-                   lp.url             AS landingPageUrl, 
-                   o.sfl_offer_geo_id AS sflOfferGeoId, 
-                   g.rules            AS geoRules, 
-                   g.sfl_offer_id     AS geoOfferId 
+            SELECT o.id                            AS offerId, 
+                   o.name                          AS name, 
+                   o.advertiser                    AS advertiser, 
+                   o.status                        AS status, 
+                   o.payin                         AS payin, 
+                   o.payout                        AS payout, 
+                   lp.id                           AS landingPageId, 
+                   lp.url                          AS landingPageUrl, 
+                   o.sfl_offer_geo_id              AS sflOfferGeoId, 
+                   g.rules                         AS geoRules, 
+                   g.sfl_offer_id                  AS geoOfferId, 
+                   lps.rules                       AS customLpRules,
+                   (SELECT IF(c1.clicks_day - (SELECT c.clicks_day 
+                                               FROM   sfl_offers_cap_current_data c 
+                                               WHERE  c.sfl_offer_id = o.id) > 0, NULL, 
+                                   c1.redirect_offer_id) 
+                    FROM   sfl_offers_cap c1 
+                    WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferDay, 
+                   (SELECT IF(c1.clicks_week - (SELECT c.clicks_week 
+                                                FROM   sfl_offers_cap_current_data c 
+                                                WHERE  c.sfl_offer_id = o.id) > 0, NULL, 
+                                   c1.redirect_offer_id) 
+                    FROM   sfl_offers_cap c1 
+                    WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferWeek, 
+                   (SELECT IF(c1.clicks_month - (SELECT c.clicks_month 
+                                                 FROM   sfl_offers_cap_current_data c 
+                                                 WHERE  c.sfl_offer_id = o.id) > 0, NULL, 
+                                   c1.redirect_offer_id) 
+                    FROM   sfl_offers_cap c1 
+                    WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferMonth 
+            FROM   sfl_offers o 
+                   left join sfl_offer_landing_pages lp 
+                          ON lp.id = o.sfl_offer_landing_page_id 
+                   left join sfl_offer_geo g 
+                          ON g.id = o.sfl_offer_geo_id   
+                   left join sfl_offer_custom_landing_pages lps
+                          ON o.id = lps.sfl_offer_id                                            
+        `)
+        await dbMysql.end()
+        // console.log(`\nget offerInfo count: ${result.length}`)
+        return result
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+const getOffer = async (id) => {
+    try {
+        let result = await dbMysql.query(` 
+            SELECT o.id   AS offerId, 
+                   o.name AS name, 
+                   lp.id  AS landingPageId, 
+                   lp.url AS landingPageUrl 
             FROM   sfl_offers o 
                    LEFT JOIN sfl_offer_landing_pages lp 
-                          ON lp.id = o.sfl_offer_landing_page_id 
-                   LEFT JOIN sfl_offer_geo g 
-                          ON g.id = o.sfl_offer_geo_id                       
+                          ON lp.id = o.sfl_offer_landing_page_id   
+            WHERE o.id = ${id}                                                    
         `)
         await dbMysql.end()
         // console.log(`\nget offerInfo count: ${result.length}`)
@@ -96,6 +137,7 @@ const insertOffer = async () => {
 }
 module.exports = {
     offerInfo,
+    getOffer,
     insertOffer,
     campaigns
 }
