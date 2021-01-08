@@ -574,7 +574,7 @@ setInterval(async () => {
             await createRecipeOffers()
             await createRecipeAffiliates()
             await createRecipeAffiliateWebsite()
-
+            metrics.influxdb(200, `createRecipeFiles_'`)
             return
         }
 
@@ -600,6 +600,7 @@ setInterval(async () => {
         await createRecipeAffiliates()
         await createRecipeAffiliateWebsite()
 
+        metrics.influxdb(200, `createRecipeFiles'`)
     } catch (e) {
         metrics.influxdb(500, `createRecipeFileError'`)
         console.log('create files campaign and offer error:', e)
