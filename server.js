@@ -15,7 +15,8 @@ const {
     createRecipeCampaign,
     createRecipeOffers,
     createRecipeAffiliates,
-    createRecipeAffiliateWebsite
+    createRecipeAffiliateWebsite,
+    // createRecipeSegments
 } = require('./recipe/buildfiles')
 const {deleteFile} = require('./lib/zipOffer')
 const {encrypt, decrypt} = require('./lib/encrypt')
@@ -84,6 +85,9 @@ app.get('/decodeUrl', async (req, res, next) => {
     }
 })
 
+// https://sfl-offers-stage1.surge.systems/files
+// https://sfl-offers.surge.systems/files
+
 app.get('/files', async (req, res, next) => {
     let response = {}
 
@@ -95,14 +99,18 @@ app.get('/files', async (req, res, next) => {
         response.files2 = files[1]
         response.files3 = files[2]
         response.files4 = files[3]
-        let size1 = await getFileSize(files[0])
-        let size2 = await getFileSize(files[1])
-        let size3 = await getFileSize(files[2])
-        let size4 = await getFileSize(files[3])
-        response.files1Size = formatByteSize(size1)
-        response.files2Size = formatByteSize(size2)
-        response.files3Size = formatByteSize(size3)
-        response.files4Size = formatByteSize(size4)
+        let size1AffWe = await getFileSize(files[0])// affWebsite
+        let size2Aff = await getFileSize(files[1]) // aff
+        let size3Camp = await getFileSize(files[2]) //campa
+        let size4Offer = await getFileSize(files[3]) // offer
+        // response.files1Size = formatByteSize(size1AffWe)
+        // response.files2Size = formatByteSize(size2Aff)
+        // response.files3Size = formatByteSize(size3Camp)
+        // response.files4Size = formatByteSize(size4Offer)
+        response.files1SizeAffWeb = size1AffWe
+        response.files2SizeAff = size2Aff
+        response.files3SizeCampaigns = size3Camp
+        response.files4SizeOffers = size4Offer
         response.countsOfClients = clients.length || 0
 
         const computerName = os.hostname()
@@ -204,6 +212,22 @@ app.get('/testAffiliateWebsites', async (req, res, next) => {
     }
 })
 
+app.get('/segements', async (req, res, next) => {
+    const {getSegments} = require('./db/segments')
+    let response = {}
+    try {
+        let segments  = await getSegments()
+
+        response.segments = segments
+        res.send(response)
+    } catch (e) {
+        response.err = 'error segements' + JSON.stringify(e)
+        console.log(e)
+        res.send(response)
+    }
+})
+
+
 
 app.get('/forceCreateRecipe', async (req, res, next) => {
     let response = {}
@@ -232,6 +256,7 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
         await createRecipeOffers()
         await createRecipeAffiliates()
         await createRecipeAffiliateWebsite()
+        // await createRecipeSegments()
 
         // let file1Size = await getFileSize(file1)
         // let file2Size = await getFileSize(file2)

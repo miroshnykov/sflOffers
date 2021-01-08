@@ -1,12 +1,15 @@
 CREATE TABLE `sfl_offer_landing_pages` (
 	`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`sfl_offer_id` INT(10) UNSIGNED NOT NULL,
 	`url` TEXT NOT NULL,
 	`params` VARCHAR(128) NOT NULL,
 	`status` ENUM('active','inactive') NOT NULL DEFAULT 'inactive',
 	`user` VARCHAR(50) NOT NULL DEFAULT '0',
 	`date_added` INT(11) NOT NULL,
 	`date_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	PRIMARY KEY (`id`)
+	PRIMARY KEY (`id`),
+	INDEX `fk_v_sfl_lp` (`sfl_offer_id`),
+	CONSTRAINT `fk_v_sfl_lp` FOREIGN KEY (`sfl_offer_id`) REFERENCES `sfl_offers` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION
 )
 COLLATE='utf8_general_ci'
 ENGINE=InnoDB
@@ -17,6 +20,7 @@ CREATE TABLE `sfl_offers` (
 	`name` VARCHAR(128) NOT NULL,
 	`advertiser` VARCHAR(128) NOT NULL,
 	`status` ENUM('active','inactive') NOT NULL DEFAULT 'inactive',
+	`conversion_type` ENUM('cpi','cpa','cpl','cpc','cpm','hybrid/multistep') NOT NULL DEFAULT 'cpi',
 	`user` VARCHAR(50) NOT NULL DEFAULT '0',
 	`sfl_offer_landing_page_id` INT(11) UNSIGNED NOT NULL,
 	`sfl_offer_geo_id` INT(11) NULL DEFAULT '0',
@@ -25,8 +29,7 @@ CREATE TABLE `sfl_offers` (
 	`date_added` INT(11) NOT NULL,
 	`date_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`),
-	INDEX `fk_v_sfl_offer_lp` (`sfl_offer_landing_page_id`),
-	CONSTRAINT `fk_v_sfl_offer_lp` FOREIGN KEY (`sfl_offer_landing_page_id`) REFERENCES `sfl_offer_landing_pages` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION
+	INDEX `fk_v_sfl_offer_lp` (`sfl_offer_landing_page_id`)
 )
 COLLATE='utf8_general_ci'
 ENGINE=InnoDB

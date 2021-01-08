@@ -8,6 +8,7 @@ const config = require('plain-config')()
 const {campaigns, getOffer, offerInfo} = require('../db/offer')
 const {affiliateWebsites} = require('../db/affiliateWebsites')
 const {affInfo} = require('../db/aff')
+// const {getSegments} = require('../db/segments')
 const {
     generateFilePath,
     createRecursiveFolder,
@@ -251,9 +252,52 @@ const createRecipeAffiliates = async () => {
 
 }
 
+// const createRecipeSegments = async () => {
+//     try {
+//         let segmentsData = await getSegments()
+//
+//         if (segmentsData.length === 0) {
+//             console.log(`No segments data  d`)
+//             return
+//         }
+//
+//         const computerName = os.hostname()
+//         console.log(`get affiliates count:${segmentsData.length}, from computer:${computerName} `)
+//         let filePath = config.recipe.folder + await generateFilePath('segments')
+//         let fileFolder = path.dirname(filePath);
+//         await createRecursiveFolder(fileFolder)
+//
+//         let transformStream = JSONStream.stringify();
+//         let outputStream = fileSystem.createWriteStream(filePath);
+//
+//         transformStream.pipe(outputStream);
+//
+//         segmentsData.forEach(transformStream.write);
+//
+//         transformStream.end();
+//
+//         outputStream.on(
+//             "finish",
+//             async function handleFinish() {
+//                 await compressFileZlibSfl(filePath)
+//                 await deleteFile(filePath)
+//                 // metrics.influxdb(200, `sizeOfCampaigns-${sizeCampaign}`)
+//                 console.log(`File Segments created path:${filePath}`)
+//
+//             }
+//         )
+//     } catch (e) {
+//         metrics.influxdb(500, `createRecipeAffiliatesError'`)
+//         console.log('createRecipeAffiliatesError:', e)
+//     }
+//
+//
+// }
+
 module.exports = {
     createRecipeCampaign,
     createRecipeOffers,
     createRecipeAffiliates,
-    createRecipeAffiliateWebsite
+    createRecipeAffiliateWebsite,
+    // createRecipeSegments
 }
