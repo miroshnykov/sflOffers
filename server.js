@@ -85,6 +85,93 @@ app.get('/decodeUrl', async (req, res, next) => {
     }
 })
 
+// https://sfl-offers-stage1.surge.systems/forceCreateRecipe
+// https://sfl-offers.surge.systems/forceCreateRecipe
+
+app.get('/forceCreateRecipe', async (req, res, next) => {
+    let response = {}
+    try {
+
+        let files = await getLocalFiles(config.recipe.folder)
+        console.log('forceCreateRecipeFileDebug:', files)
+        console.log('forceCreateRecipeRecipe:', config.recipe)
+        response.files = files
+        response.configRecipe = config.recipe
+
+        if (files.length === 0){
+            response.noFiles = `no files in folder:${JSON.stringify(config.recipe)} created `
+            await createRecipeCampaign()
+            await createRecipeOffers()
+            await createRecipeAffiliates()
+            await createRecipeAffiliateWebsite()
+
+            await waitFor(5000)
+
+            let files = await getLocalFiles(config.recipe.folder)
+            response.filesJustCreated = files
+
+            let size1AffWe = await getFileSize(files[0])// affWebsite
+            let size2Aff = await getFileSize(files[1]) // aff
+            let size3Camp = await getFileSize(files[2]) //campa
+            let size4Offer = await getFileSize(files[3]) // offer
+            // response.files1Size = formatByteSize(size1AffWe)
+            // response.files2Size = formatByteSize(size2Aff)
+            // response.files3Size = formatByteSize(size3Camp)
+            // response.files4Size = formatByteSize(size4Offer)
+            response.files1SizeAffWeb = size1AffWe
+            response.files2SizeAff = size2Aff
+            response.files3SizeCampaigns = size3Camp
+            response.files4SizeOffers = size4Offer
+
+            res.send(response)
+            return
+        }
+        let file1 = files[0]
+        let file2 = files[1]
+        let file3 = files[2]
+        let file4 = files[3]
+        if (file1) {
+            await deleteFile(file1)
+            response.file1Deleted = file1
+        }
+        if (file2) {
+            await deleteFile(file2)
+            response.file2Deleted = file2
+        }
+        if (file3) {
+            response.file3Deleted = file3
+            await deleteFile(file3)
+        }
+        if (file4) {
+            response.file4Deleted = file4
+            await deleteFile(file4)
+        }
+        await createRecipeCampaign()
+        await createRecipeOffers()
+        await createRecipeAffiliates()
+        await createRecipeAffiliateWebsite()
+        // await createRecipeSegments()
+
+
+        if (file1 && file2 && file3 && file4) {
+            response.files1 = `${files[0]}`
+            response.files2 = `${files[1]}`
+            response.files3 = `${files[2]}`
+            response.files4 = `${files[3]}`
+            response.done = 'recipe created'
+        } else {
+            response.done = 'files does not exists. but Recipe created first time '
+        }
+
+        res.send(response)
+
+    } catch (e) {
+        response.err = 'error recipe' + JSON.stringify(e)
+        res.send(response)
+    }
+})
+
+
 // https://sfl-offers-stage1.surge.systems/files
 // https://sfl-offers.surge.systems/files
 
@@ -93,6 +180,13 @@ app.get('/files', async (req, res, next) => {
 
     try {
         let files = await getLocalFiles(config.recipe.folder)
+
+
+        if (files.length === 0){
+            response.noFiles = `no files in folder:${JSON.stringify(config.recipe)}`
+            res.send(response)
+            return
+        }
 
         response.files = files
         response.files1 = files[0]
@@ -227,58 +321,6 @@ app.get('/segements', async (req, res, next) => {
     }
 })
 
-
-
-app.get('/forceCreateRecipe', async (req, res, next) => {
-    let response = {}
-    try {
-
-        let files = await getLocalFiles(config.recipe.folder)
-        console.log('forceCreateRecipeFileDebug:', files)
-        console.log('forceCreateRecipeRecipe:', config.recipe)
-        let file1 = files[0]
-        let file2 = files[1]
-        let file3 = files[2]
-        let file4 = files[3]
-        if (file1) {
-            await deleteFile(file1)
-        }
-        if (file2) {
-            await deleteFile(file2)
-        }
-        if (file3) {
-            await deleteFile(file3)
-        }
-        if (file4) {
-            await deleteFile(file4)
-        }
-        await createRecipeCampaign()
-        await createRecipeOffers()
-        await createRecipeAffiliates()
-        await createRecipeAffiliateWebsite()
-        // await createRecipeSegments()
-
-        // let file1Size = await getFileSize(file1)
-        // let file2Size = await getFileSize(file2)
-        // console.log(file1Size)
-        // console.log(file2Size)
-        if (file1 && file2 && file3 && file4) {
-            response.files1 = `${files[0]}`
-            response.files2 = `${files[1]}`
-            response.files3 = `${files[2]}`
-            response.files4 = `${files[3]}`
-            response.done = 'recipe created'
-        } else {
-            response.done = 'files does not exists. but Recipe created first time '
-        }
-
-        res.send(response)
-
-    } catch (e) {
-        response.err = 'error recipe' + JSON.stringify(e)
-        res.send(response)
-    }
-})
 
 io.on('connection', async (socket) => {
 
@@ -455,6 +497,11 @@ setInterval(async () => {
         let files = await getLocalFiles(config.recipe.folder)
         const computerName = os.hostname()
         console.log(`getLocalFilesDebug for computerName:${computerName}, files:${JSON.stringify(files)}`)
+        if (files.length === 0){
+            console.log(`I am not able to get the Size of recipe,  No files in folder ${config.recipe.folder}`)
+            metrics.influxdb(500, `fileSizeAllRecipeNotExists`)
+            return
+        }
         let file1 = files[0] // aff website
         let file2 = files[1] //aff
         let file3 = files[2]//camp
@@ -517,9 +564,20 @@ setInterval(async () => {
 
     try {
         if (config.env === 'development') return
+
         const computerName = os.hostname()
         let files = await getLocalFiles(config.recipe.folder)
         console.log(`\nCreate files campaign and offer, computerName:${computerName}, files:${JSON.stringify(files)}, ConfigRecipeFolder:${JSON.stringify(config.recipe)}  `)
+        if (files.length === 0){
+            console.log(`no files in folder:${JSON.stringify(config.recipe)} created `)
+            await createRecipeCampaign()
+            await createRecipeOffers()
+            await createRecipeAffiliates()
+            await createRecipeAffiliateWebsite()
+
+            return
+        }
+
         let file1 = files[0]
         let file2 = files[1]
         let file3 = files[2]
@@ -547,7 +605,7 @@ setInterval(async () => {
         console.log('create files campaign and offer error:', e)
     }
 
-}, 60000) //every min
+}, 300000) // 300000 every 5 min
 
 setTimeout(async () => {
 
@@ -556,6 +614,16 @@ setTimeout(async () => {
     console.log('Create recipe file first time')
     try {
         let files = await getLocalFiles(config.recipe.folder)
+        if (files.length === 0){
+            console.log(`no files in folder:${JSON.stringify(config.recipe)} created `)
+            await createRecipeCampaign()
+            await createRecipeOffers()
+            await createRecipeAffiliates()
+            await createRecipeAffiliateWebsite()
+
+            return
+        }
+
         let file1 = files[0]
         let file2 = files[1]
         let file3 = files[2]
