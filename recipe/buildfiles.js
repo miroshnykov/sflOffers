@@ -5,6 +5,8 @@ let path = require('path')
 const os = require('os')
 const config = require('plain-config')()
 
+const computerName = os.hostname()
+
 const {campaigns, getOffer, offerInfo} = require('../db/offer')
 const {affiliateWebsites} = require('../db/affiliateWebsites')
 const {affInfo} = require('../db/aff')
@@ -26,7 +28,6 @@ const createRecipeCampaign = async () => {
     try {
         let campaignData = await campaigns()
 
-        const computerName = os.hostname()
         console.log(`get campaign count:${campaignData.length}, from computer:${computerName} `)
         if (campaignData.length === 0) {
             console.log(`No campaigns data`)
@@ -67,7 +68,7 @@ const createRecipeCampaign = async () => {
             }
         );
     } catch (e) {
-        metrics.influxdb(500, `createRecipeCampaignError'`)
+        metrics.influxdb(500, `createRecipeCampaignError-${computerName}`)
         console.log('createRecipeCampaignError:', e)
     }
 
@@ -122,7 +123,7 @@ const createRecipeAffiliateWebsite = async () => {
             }
         );
     } catch (e) {
-        metrics.influxdb(500, `createRecipeAffiliateWebsitesError'`)
+        metrics.influxdb(500, `createRecipeAffiliateWebsitesError-${computerName}`)
         console.log('createRecipeAffiliateWebsitesError:', e)
     }
 
@@ -203,7 +204,7 @@ const createRecipeOffers = async () => {
             }
         )
     } catch (e) {
-        metrics.influxdb(500, `createRecipeOffersError'`)
+        metrics.influxdb(500, `createRecipeOffersError-${computerName}`)
         console.log('createRecipeOffersError:', e)
     }
 
@@ -245,7 +246,7 @@ const createRecipeAffiliates = async () => {
             }
         )
     } catch (e) {
-        metrics.influxdb(500, `createRecipeAffiliatesError'`)
+        metrics.influxdb(500, `createRecipeAffiliatesError-${computerName}`)
         console.log('createRecipeAffiliatesError:', e)
     }
 
