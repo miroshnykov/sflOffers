@@ -515,27 +515,27 @@ setInterval(async () => {
         if (file1) {
             fileSizeAffiliateWebsites = await getFileSize(file1) || 0
         } else {
-            metrics.influxdb(500, `fileSizeAffilaiteWebsitesNotExists`)
+            metrics.influxdb(500, `fileSizeAffilaiteWebsitesNotExists-${computerName}`)
         }
 
         if (file2) {
             fileSizeAffiliates = await getFileSize(file2) || 0
         } else {
-            metrics.influxdb(500, `fileSizeAffilaitesNotExists`)
+            metrics.influxdb(500, `fileSizeAffilaitesNotExists-${computerName}`)
         }
 
 
         if (file3) {
             fileSizeCampaign = await getFileSize(file3) || 0
         } else {
-            metrics.influxdb(500, `fileSizeCampaignsNotExists`)
+            metrics.influxdb(500, `fileSizeCampaignsNotExists-${computerName}`)
         }
 
 
         if (file4) {
             fileSizeOffer = await getFileSize(file4) || 0
         } else {
-            metrics.influxdb(500, `fileSizeOffersNotExists`)
+            metrics.influxdb(500, `fileSizeOffersNotExists-${computerName}`)
         }
 
 
@@ -574,7 +574,7 @@ setInterval(async () => {
             await createRecipeOffers()
             await createRecipeAffiliates()
             await createRecipeAffiliateWebsite()
-            metrics.influxdb(200, `createRecipeFiles_'`)
+            metrics.influxdb(200, `createRecipeFiles_${computerName}`)
             return
         }
 
@@ -600,9 +600,9 @@ setInterval(async () => {
         await createRecipeAffiliates()
         await createRecipeAffiliateWebsite()
 
-        metrics.influxdb(200, `createRecipeFiles'`)
+        metrics.influxdb(200, `createRecipeFiles-${computerName}`)
     } catch (e) {
-        metrics.influxdb(500, `createRecipeFileError'`)
+        metrics.influxdb(500, `createRecipeFileError-${computerName}`)
         console.log('create files campaign and offer error:', e)
     }
 
