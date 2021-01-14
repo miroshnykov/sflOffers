@@ -1,6 +1,7 @@
 CREATE TABLE `sfl_offer_landing_pages` (
 	`id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
 	`sfl_offer_id` INT(10) UNSIGNED NOT NULL,
+	`name` VARCHAR(150) NOT NULL DEFAULT '',
 	`url` TEXT NOT NULL,
 	`params` VARCHAR(128) NOT NULL,
 	`status` ENUM('active','inactive') NOT NULL DEFAULT 'inactive',
@@ -22,8 +23,9 @@ CREATE TABLE `sfl_offers` (
 	`status` ENUM('active','inactive') NOT NULL DEFAULT 'inactive',
 	`conversion_type` ENUM('cpi','cpa','cpl','cpc','cpm','hybrid/multistep') NOT NULL DEFAULT 'cpi',
 	`user` VARCHAR(50) NOT NULL DEFAULT '0',
-	`sfl_offer_landing_page_id` INT(11) UNSIGNED NOT NULL,
+	`sfl_offer_landing_page_id` INT(11) NULL DEFAULT '0',
 	`sfl_offer_geo_id` INT(11) NULL DEFAULT '0',
+	`offer_id_redirect` INT(11) NULL DEFAULT '0',
 	`payin` DECIMAL(16,8) NOT NULL DEFAULT '0.00000000',
 	`payout` DECIMAL(16,8) NOT NULL DEFAULT '0.00000000',
 	`date_added` INT(11) NOT NULL,

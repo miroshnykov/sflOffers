@@ -11,6 +11,8 @@ const {
     getLocalFiles
 } = require('./lib/zipOffer')
 
+const {getDataCache, setDataCache} = require('./lib/redis')
+
 const {
     createRecipeCampaign,
     createRecipeOffers,
@@ -98,7 +100,7 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
         response.files = files
         response.configRecipe = config.recipe
 
-        if (files.length === 0){
+        if (files.length === 0) {
             response.noFiles = `no files in folder:${JSON.stringify(config.recipe)} created `
             await createRecipeCampaign()
             await createRecipeOffers()
@@ -182,7 +184,7 @@ app.get('/files', async (req, res, next) => {
         let files = await getLocalFiles(config.recipe.folder)
 
 
-        if (files.length === 0){
+        if (files.length === 0) {
             response.noFiles = `no files in folder:${JSON.stringify(config.recipe)}`
             res.send(response)
             return
@@ -310,7 +312,7 @@ app.get('/segements', async (req, res, next) => {
     const {getSegments} = require('./db/segments')
     let response = {}
     try {
-        let segments  = await getSegments()
+        let segments = await getSegments()
 
         response.segments = segments
         res.send(response)
@@ -323,6 +325,31 @@ app.get('/segements', async (req, res, next) => {
 
 
 io.on('connection', async (socket) => {
+
+
+    socket.on('fileSizeInfo', async (fileSizeInfo) => {
+        try {
+            let fileSizeInfoCache = await getDataCache('fileSizeInfo') || []
+
+            console.log('fileSizeInfoCache:', fileSizeInfoCache)
+            if (fileSizeInfoCache.length === 0) {
+                console.log('fileSizeInfoCache recipeCache is NULL')
+                return
+            }
+            if (JSON.stringify(fileSizeInfoCache) === JSON.stringify(fileSizeInfo)) {
+                console.log(`FileSize the same  don't need to send   { ${socket.id} } `)
+                return
+            }
+
+            console.log(`FileSize is different, send to socket id { ${socket.id} }, fileSizeInfoCache:{ ${JSON.stringify(fileSizeInfoCache)} }`)
+            io.to(socket.id).emit("fileSizeInfo", fileSizeInfoCache)
+
+        } catch (e) {
+            console.log('fileSizeInfoError:', e)
+            metrics.influxdb(500, `fileSizeInfoError`)
+        }
+
+    })
 
     let updRedis = []
 
@@ -344,7 +371,7 @@ io.on('connection', async (socket) => {
         try {
             let files = await getLocalFiles(config.recipe.folder)
 
-            console.log('FILE:',files)
+            // console.log('FILE:',files)
             let file = files[0]
             if (!file) {
                 console.log(`no files in folder:${config.recipe.folder}`)
@@ -391,7 +418,6 @@ io.on('connection', async (socket) => {
     })
 
 
-
     socket.on('sendFileCampaign', async () => {
 
         try {
@@ -427,7 +453,7 @@ io.on('connection', async (socket) => {
 
 
             let file = files[3]
-            console.log('sendFileOffer file:', file)
+            // console.log('sendFileOffer file:', file)
             if (!file) {
                 console.log(`no files in folder:${config.recipe.folder}`)
                 return
@@ -497,7 +523,7 @@ setInterval(async () => {
         let files = await getLocalFiles(config.recipe.folder)
         const computerName = os.hostname()
         console.log(`getLocalFilesDebug for computerName:${computerName}, files:${JSON.stringify(files)}`)
-        if (files.length === 0){
+        if (files.length === 0) {
             console.log(`I am not able to get the Size of recipe,  No files in folder ${config.recipe.folder}`)
             metrics.influxdb(500, `fileSizeAllRecipeNotExists`)
             return
@@ -539,11 +565,27 @@ setInterval(async () => {
         }
 
 
-
         console.log(`File size for computerName:${computerName}  fileSizeAffiliates:${fileSizeAffiliates}, fileSizeCampaign:${fileSizeCampaign}, fileSizeOffer:${fileSizeOffer}, fileSizeAffiliateWebsites:${fileSizeAffiliateWebsites}`)
 
         // console.log('fileSizeOffer:', fileSizeOffer)
         // console.log('fileSizeCampaign:', fileSizeCampaign)
+        let fileSizeInfo = {}
+        if (fileSizeOffer) {
+            fileSizeInfo.offer = fileSizeOffer
+        }
+        if (fileSizeCampaign) {
+            fileSizeInfo.campaign = fileSizeCampaign
+        }
+        if (fileSizeAffiliates) {
+            fileSizeInfo.affiliates = fileSizeAffiliates
+        }
+
+        if (fileSizeAffiliateWebsites) {
+            fileSizeInfo.affiliateWebsites = fileSizeAffiliateWebsites
+        }
+
+        console.log(' Set fileSizeInfo:', fileSizeInfo)
+        await setDataCache(`fileSizeInfo`, fileSizeInfo)
         metrics.sendMetricsSystem(
             fileSizeOffer && fileSizeOffer.toString() || 0,
             fileSizeCampaign && fileSizeCampaign.toString() || 0,
@@ -562,13 +604,13 @@ setInterval(async () => {
 
 setInterval(async () => {
 
+    const computerName = os.hostname()
     try {
         if (config.env === 'development') return
 
-        const computerName = os.hostname()
         let files = await getLocalFiles(config.recipe.folder)
         console.log(`\nCreate files campaign and offer, computerName:${computerName}, files:${JSON.stringify(files)}, ConfigRecipeFolder:${JSON.stringify(config.recipe)}  `)
-        if (files.length === 0){
+        if (files.length === 0) {
             console.log(`no files in folder:${JSON.stringify(config.recipe)} created `)
             await createRecipeCampaign()
             await createRecipeOffers()
@@ -615,7 +657,7 @@ setTimeout(async () => {
     console.log('Create recipe file first time')
     try {
         let files = await getLocalFiles(config.recipe.folder)
-        if (files.length === 0){
+        if (files.length === 0) {
             console.log(`no files in folder:${JSON.stringify(config.recipe)} created `)
             await createRecipeCampaign()
             await createRecipeOffers()
@@ -651,7 +693,91 @@ setTimeout(async () => {
         console.log('create files campaign and offer first time error:', e)
     }
 
-}, 9000)
+}, 10000)
 
+setTimeout(async () => {
+    if (config.env === 'development') return
+    console.log('Set fileSizeInfo first time')
+    try {
+        let files = await getLocalFiles(config.recipe.folder)
+        const computerName = os.hostname()
+        console.log(`getLocalFilesDebug for computerName:${computerName}, files:${JSON.stringify(files)}`)
+        if (files.length === 0) {
+            console.log(`I am not able to get the Size of recipe,  No files in folder ${config.recipe.folder}`)
+            metrics.influxdb(500, `fileSizeAllRecipeNotExists`)
+            return
+        }
+        let file1 = files[0] // aff website
+        let file2 = files[1] //aff
+        let file3 = files[2]//camp
+        let file4 = files[3]//offer
+        let fileSizeOffer
+        let fileSizeCampaign
+        let fileSizeAffiliates
+        let fileSizeAffiliateWebsites
+
+
+        if (file1) {
+            fileSizeAffiliateWebsites = await getFileSize(file1) || 0
+        } else {
+            metrics.influxdb(500, `fileSizeAffilaiteWebsitesNotExists-${computerName}`)
+        }
+
+        if (file2) {
+            fileSizeAffiliates = await getFileSize(file2) || 0
+        } else {
+            metrics.influxdb(500, `fileSizeAffilaitesNotExists-${computerName}`)
+        }
+
+
+        if (file3) {
+            fileSizeCampaign = await getFileSize(file3) || 0
+        } else {
+            metrics.influxdb(500, `fileSizeCampaignsNotExists-${computerName}`)
+        }
+
+
+        if (file4) {
+            fileSizeOffer = await getFileSize(file4) || 0
+        } else {
+            metrics.influxdb(500, `fileSizeOffersNotExists-${computerName}`)
+        }
+
+
+        console.log(`File size for computerName:${computerName}  fileSizeAffiliates:${fileSizeAffiliates}, fileSizeCampaign:${fileSizeCampaign}, fileSizeOffer:${fileSizeOffer}, fileSizeAffiliateWebsites:${fileSizeAffiliateWebsites}`)
+
+        // console.log('fileSizeOffer:', fileSizeOffer)
+        // console.log('fileSizeCampaign:', fileSizeCampaign)
+        let fileSizeInfo = {}
+        if (fileSizeOffer) {
+            fileSizeInfo.offer = fileSizeOffer
+        }
+        if (fileSizeCampaign) {
+            fileSizeInfo.campaign = fileSizeCampaign
+        }
+        if (fileSizeAffiliates) {
+            fileSizeInfo.affiliates = fileSizeAffiliates
+        }
+
+        if (fileSizeAffiliateWebsites) {
+            fileSizeInfo.affiliateWebsites = fileSizeAffiliateWebsites
+        }
+
+        console.log(' Set fileSizeInfo:', fileSizeInfo)
+        await setDataCache(`fileSizeInfo`, fileSizeInfo)
+        metrics.sendMetricsSystem(
+            fileSizeOffer && fileSizeOffer.toString() || 0,
+            fileSizeCampaign && fileSizeCampaign.toString() || 0,
+            fileSizeAffiliates && fileSizeAffiliates.toString() || 0,
+            fileSizeAffiliateWebsites && fileSizeAffiliateWebsites.toString() || 0,
+            clients.length || 0
+        )
+
+    } catch (e) {
+        console.log('getFilesSizeError:', e)
+        metrics.influxdb(500, `getFilesSizeError'`)
+    }
+
+}, 20000)
 
 const waitFor = delay => new Promise(resolve => setTimeout(resolve, delay))
