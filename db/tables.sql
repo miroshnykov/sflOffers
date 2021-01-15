@@ -56,16 +56,46 @@ COLLATE='utf8_general_ci'
 ENGINE=InnoDB
 ;
 
+CREATE TABLE `sfl_offers_cap` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`sfl_offer_id` INT(10) UNSIGNED NOT NULL,
+	`clicks_day` INT(11) NOT NULL DEFAULT '0',
+	`clicks_week` INT(11) NOT NULL DEFAULT '0',
+	`clicks_month` INT(11) NOT NULL DEFAULT '0',
+	`clicks_redirect_status` ENUM('default','custom') NOT NULL DEFAULT 'default',
+	`clicks_redirect_offer_id` INT(10) UNSIGNED NOT NULL,
+	`sales_day` INT(11) NOT NULL DEFAULT '0',
+	`sales_week` INT(11) NOT NULL DEFAULT '0',
+	`sales_month` INT(11) NOT NULL DEFAULT '0',
+	`sales_redirect_status` ENUM('default','custom') NOT NULL DEFAULT 'default',
+	`sales_redirect_offer_id` INT(10) UNSIGNED NOT NULL,
+	`start_date` INT(11) NOT NULL,
+	`date_added` INT(11) NOT NULL,
+	`date_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX `Index_sfl_offer_id` (`sfl_offer_id`),
+	INDEX `fk_redirect_offer_id` (`clicks_redirect_offer_id`),
+	INDEX `fk_sales_redirect_offer_id` (`sales_redirect_offer_id`),
+	CONSTRAINT `fk_clicks_redirect_offer_id` FOREIGN KEY (`clicks_redirect_offer_id`) REFERENCES `sfl_offers` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION,
+	CONSTRAINT `fk_sales_redirect_offer_id` FOREIGN KEY (`sales_redirect_offer_id`) REFERENCES `sfl_offers` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION,
+	CONSTRAINT `fk_sfl_offer_id` FOREIGN KEY (`sfl_offer_id`) REFERENCES `sfl_offers` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB
+;
+
 CREATE TABLE `sfl_offer_campaign_cap` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`sfl_offer_campaign_id` INT(10) UNSIGNED NOT NULL,
 	`clicks_day` INT(11) NOT NULL DEFAULT '0',
 	`clicks_week` INT(11) NOT NULL DEFAULT '0',
 	`clicks_month` INT(11) NOT NULL DEFAULT '0',
+	`clicks_redirect_status` ENUM('default','custom') NOT NULL DEFAULT 'default',
 	`clicks_redirect_offer_id` INT(10) UNSIGNED NOT NULL,
 	`sales_day` INT(11) NOT NULL DEFAULT '0',
 	`sales_week` INT(11) NOT NULL DEFAULT '0',
 	`sales_month` INT(11) NOT NULL DEFAULT '0',
+	`sales_redirect_status` ENUM('default','custom') NOT NULL DEFAULT 'default',
 	`sales_redirect_offer_id` INT(10) UNSIGNED NOT NULL,
 	`start_date` INT(11) NOT NULL,
 	`date_added` INT(11) NOT NULL,
@@ -81,6 +111,7 @@ CREATE TABLE `sfl_offer_campaign_cap` (
 COLLATE='utf8_general_ci'
 ENGINE=InnoDB
 ;
+
 
 
 CREATE TABLE `sfl_offer_geo` (
