@@ -19,19 +19,19 @@ const offerInfo = async () => {
                    (SELECT IF(c1.clicks_day - (SELECT c.clicks_day 
                                                FROM   sfl_offers_cap_current_data c 
                                                WHERE  c.sfl_offer_id = o.id) > 0, NULL, 
-                                   c1.redirect_offer_id) 
+                                   c1.clicks_redirect_offer_id) 
                     FROM   sfl_offers_cap c1 
                     WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferDay, 
                    (SELECT IF(c1.clicks_week - (SELECT c.clicks_week 
                                                 FROM   sfl_offers_cap_current_data c 
                                                 WHERE  c.sfl_offer_id = o.id) > 0, NULL, 
-                                   c1.redirect_offer_id) 
+                                   c1.clicks_redirect_offer_id) 
                     FROM   sfl_offers_cap c1 
                     WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferWeek, 
                    (SELECT IF(c1.clicks_month - (SELECT c.clicks_month 
                                                  FROM   sfl_offers_cap_current_data c 
                                                  WHERE  c.sfl_offer_id = o.id) > 0, NULL, 
-                                   c1.redirect_offer_id) 
+                                   c1.clicks_redirect_offer_id) 
                     FROM   sfl_offers_cap c1 
                     WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferMonth 
             FROM   sfl_offers o 
