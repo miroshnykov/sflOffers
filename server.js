@@ -333,9 +333,9 @@ io.on('connection', async (socket) => {
         try {
             let fileSizeInfoCache = await getDataCache('fileSizeInfo') || []
 
-            console.log('fileSizeInfoCache:', fileSizeInfoCache)
+            console.log(`FileSizeInfoCache:${JSON.stringify(fileSizeInfoCache)}`)
             if (fileSizeInfoCache.length === 0) {
-                console.log('fileSizeInfoCache recipeCache is NULL')
+                console.log('FileSizeInfoCache recipeCache is NULL')
                 return
             }
             if (JSON.stringify(fileSizeInfoCache) === JSON.stringify(fileSizeInfo)) {
@@ -625,7 +625,7 @@ setInterval(async () => {
         metrics.influxdb(500, `getFilesSizeError'`)
     }
 
-}, 390000) // every 6,5 min
+}, 10000) // every 6,5 min
 
 
 setInterval(async () => {
