@@ -13,6 +13,8 @@ const {
 
 const {getDataCache, setDataCache} = require('./lib/redis')
 
+const {blockedIp} = require('./db/blockedIp')
+
 const {
     createRecipeCampaign,
     createRecipeOffers,
@@ -351,6 +353,29 @@ io.on('connection', async (socket) => {
 
     })
 
+    socket.on('blockedIp', async (blockedIp) => {
+        try {
+            let blockedIpCache = await getDataCache('blockedIp') || []
+
+            if (blockedIpCache.length === 0) {
+                console.log('blockedIpCache  is NULL')
+                return
+            }
+            if (JSON.stringify(blockedIpCache) === JSON.stringify(blockedIp)) {
+                console.log(`blockedIpCache the same  don't need to send   { ${socket.id} } `)
+                return
+            }
+
+            console.log(`blockedIp is different, send to socket id { ${socket.id} }, fileSizeInfoCache:{ ${JSON.stringify(blockedIpCache)} }`)
+            io.to(socket.id).emit("blockedIp", blockedIpCache)
+
+        } catch (e) {
+            console.log('blockedIpError:', e)
+            metrics.influxdb(500, `blockedIpError`)
+        }
+
+    })
+
     let updRedis = []
 
     if (!clients.includes(socket.id)) {
@@ -571,26 +596,27 @@ setInterval(async () => {
         // console.log('fileSizeCampaign:', fileSizeCampaign)
         let fileSizeInfo = {}
         if (fileSizeOffer) {
-            fileSizeInfo.offer = fileSizeOffer
+            fileSizeInfo.offer = Number(fileSizeOffer)
         }
         if (fileSizeCampaign) {
-            fileSizeInfo.campaign = fileSizeCampaign
+            fileSizeInfo.campaign = Number(fileSizeCampaign)
         }
         if (fileSizeAffiliates) {
-            fileSizeInfo.affiliates = fileSizeAffiliates
+            fileSizeInfo.affiliates = Number(fileSizeAffiliates)
         }
 
         if (fileSizeAffiliateWebsites) {
-            fileSizeInfo.affiliateWebsites = fileSizeAffiliateWebsites
+            fileSizeInfo.affiliateWebsites = Number(fileSizeAffiliateWebsites)
         }
 
         console.log(' Set fileSizeInfo:', fileSizeInfo)
         await setDataCache(`fileSizeInfo`, fileSizeInfo)
+
+        let blockedIpInfo = await blockedIp()
+        await setDataCache(`blockedIp`, blockedIpInfo)
+
         metrics.sendMetricsSystem(
-            fileSizeOffer && fileSizeOffer.toString() || 0,
-            fileSizeCampaign && fileSizeCampaign.toString() || 0,
-            fileSizeAffiliates && fileSizeAffiliates.toString() || 0,
-            fileSizeAffiliateWebsites && fileSizeAffiliateWebsites.toString() || 0,
+            fileSizeInfo,
             clients.length || 0
         )
 
@@ -663,7 +689,7 @@ setTimeout(async () => {
             await createRecipeOffers()
             await createRecipeAffiliates()
             await createRecipeAffiliateWebsite()
-
+            await setDataCache(`blockedIp`, await blockedIp())
             return
         }
 
@@ -688,6 +714,9 @@ setTimeout(async () => {
         await createRecipeOffers()
         await createRecipeAffiliates()
         await createRecipeAffiliateWebsite()
+
+        let blockedIpInfo = await blockedIp()
+        await setDataCache(`blockedIp`, blockedIpInfo)
     } catch (e) {
         metrics.influxdb(500, `createRecipeFileFirstTimeError'`)
         console.log('create files campaign and offer first time error:', e)
@@ -750,26 +779,23 @@ setTimeout(async () => {
         // console.log('fileSizeCampaign:', fileSizeCampaign)
         let fileSizeInfo = {}
         if (fileSizeOffer) {
-            fileSizeInfo.offer = fileSizeOffer
+            fileSizeInfo.offer = Number(fileSizeOffer)
         }
         if (fileSizeCampaign) {
-            fileSizeInfo.campaign = fileSizeCampaign
+            fileSizeInfo.campaign = Number(fileSizeCampaign)
         }
         if (fileSizeAffiliates) {
-            fileSizeInfo.affiliates = fileSizeAffiliates
+            fileSizeInfo.affiliates = Number(fileSizeAffiliates)
         }
 
         if (fileSizeAffiliateWebsites) {
-            fileSizeInfo.affiliateWebsites = fileSizeAffiliateWebsites
+            fileSizeInfo.affiliateWebsites = Number(fileSizeAffiliateWebsites)
         }
 
         console.log(' Set fileSizeInfo:', fileSizeInfo)
         await setDataCache(`fileSizeInfo`, fileSizeInfo)
         metrics.sendMetricsSystem(
-            fileSizeOffer && fileSizeOffer.toString() || 0,
-            fileSizeCampaign && fileSizeCampaign.toString() || 0,
-            fileSizeAffiliates && fileSizeAffiliates.toString() || 0,
-            fileSizeAffiliateWebsites && fileSizeAffiliateWebsites.toString() || 0,
+            fileSizeInfo,
             clients.length || 0
         )
 
