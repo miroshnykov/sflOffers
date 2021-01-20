@@ -625,7 +625,7 @@ setInterval(async () => {
         metrics.influxdb(500, `getFilesSizeError'`)
     }
 
-}, 10000) // every 6,5 min
+}, 390000) // every 6,5 min
 
 
 setInterval(async () => {
