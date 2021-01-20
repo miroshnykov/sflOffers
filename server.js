@@ -609,7 +609,7 @@ setInterval(async () => {
             fileSizeInfo.affiliateWebsites = Number(fileSizeAffiliateWebsites)
         }
 
-        console.log(' Set fileSizeInfo:', fileSizeInfo)
+        console.log(`Set fileSizeInfo:${JSON.stringify(fileSizeInfo)}`)
         await setDataCache(`fileSizeInfo`, fileSizeInfo)
 
         let blockedIpInfo = await blockedIp()
@@ -792,7 +792,7 @@ setTimeout(async () => {
             fileSizeInfo.affiliateWebsites = Number(fileSizeAffiliateWebsites)
         }
 
-        console.log(' Set fileSizeInfo:', fileSizeInfo)
+        console.log(`Set fileSizeInfo:${JSON.stringify(fileSizeInfo)}`)
         await setDataCache(`fileSizeInfo`, fileSizeInfo)
         metrics.sendMetricsSystem(
             fileSizeInfo,
