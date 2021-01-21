@@ -38,9 +38,9 @@ const offerInfo = async () => {
                    left join sfl_offer_landing_pages lp 
                           ON lp.id = o.sfl_offer_landing_page_id 
                    left join sfl_offer_geo g 
-                          ON g.id = o.sfl_offer_geo_id   
+                          ON g.sfl_offer_id = o.id  
                    left join sfl_offer_custom_landing_pages lps
-                          ON o.id = lps.sfl_offer_id                                            
+                          ON o.id = lps.sfl_offer_id                                          
         `)
         await dbMysql.end()
         // console.log(`\nget offerInfo count: ${result.length}`)
