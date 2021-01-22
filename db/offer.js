@@ -16,21 +16,21 @@ const offerInfo = async () => {
                    g.rules                         AS geoRules, 
                    g.sfl_offer_id                  AS geoOfferId, 
                    lps.rules                       AS customLpRules,
-                   (SELECT IF(c1.clicks_day - (SELECT c.clicks_day 
+                   (SELECT IF((SELECT c.clicks_day 
                                                FROM   sfl_offers_cap_current_data c 
-                                               WHERE  c.sfl_offer_id = o.id) > 0, NULL, 
+                                               WHERE  c.sfl_offer_id = o.id) - c1.clicks_day  > 0, NULL, 
                                    c1.clicks_redirect_offer_id) 
                     FROM   sfl_offers_cap c1 
                     WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferDay, 
-                   (SELECT IF(c1.clicks_week - (SELECT c.clicks_week 
+                   (SELECT IF((SELECT c.clicks_week 
                                                 FROM   sfl_offers_cap_current_data c 
-                                                WHERE  c.sfl_offer_id = o.id) > 0, NULL, 
+                                                WHERE  c.sfl_offer_id = o.id) - c1.clicks_week  > 0, NULL, 
                                    c1.clicks_redirect_offer_id) 
                     FROM   sfl_offers_cap c1 
                     WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferWeek, 
-                   (SELECT IF(c1.clicks_month - (SELECT c.clicks_month 
+                   (SELECT IF((SELECT c.clicks_month 
                                                  FROM   sfl_offers_cap_current_data c 
-                                                 WHERE  c.sfl_offer_id = o.id) > 0, NULL, 
+                                                 WHERE  c.sfl_offer_id = o.id)- c1.clicks_month > 0, NULL, 
                                    c1.clicks_redirect_offer_id) 
                     FROM   sfl_offers_cap c1 
                     WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferMonth 
