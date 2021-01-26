@@ -157,9 +157,9 @@ const createRecipeOffers = async () => {
                 // console.log(offerInfo)
                 offer.landingPageIdOrigin = offer.landingPageId
                 offer.landingPageUrlOrigin = offer.landingPageUrl
-                offer.landingPageId = offerInfo[0].landingPageId
-                offer.landingPageUrl = offerInfo[0].landingPageUrl
-                offer.capOverrideOfferId = offerInfo[0].offerId
+                offer.landingPageId = offerInfo && offerInfo[0].landingPageId || 0
+                offer.landingPageUrl = offerInfo && offerInfo[0].landingPageUrl || 0
+                offer.capOverrideOfferId = offerInfo && offerInfo[0].offerId || 0
 
             }
 
