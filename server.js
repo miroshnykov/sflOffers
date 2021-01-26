@@ -339,7 +339,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(fileSizeInfoCache) === JSON.stringify(fileSizeInfo)) {
-                console.log(`FileSize the same  don't need to send   { ${socket.id} } `)
+                console.log(` --- FileSize the same  don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -362,16 +362,62 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(blockedIpCache) === JSON.stringify(blockedIp)) {
-                console.log(`blockedIpCache the same  don't need to send   { ${socket.id} } `)
+                console.log(` --- blockedIpCache the same  don't need to send   { ${socket.id} } `)
                 return
             }
 
-            console.log(`blockedIp is different, send to socket id { ${socket.id} }, fileSizeInfoCache:{ ${JSON.stringify(blockedIpCache)} }`)
+            console.log(` **** blockedIp is different, send to socket id { ${socket.id} }, fileSizeInfoCache:{ ${JSON.stringify(blockedIpCache)} }`)
             io.to(socket.id).emit("blockedIp", blockedIpCache)
 
         } catch (e) {
             console.log('blockedIpError:', e)
             metrics.influxdb(500, `blockedIpError`)
+        }
+
+    })
+
+    socket.on('segmentsInfo', async (segmentsInfo_) => {
+        try {
+            let segmentsInfoCache = await getDataCache('segmentsInfo') || []
+
+            if (segmentsInfoCache.length === 0) {
+                console.log('segmentsInfoCache  is NULL')
+                return
+            }
+            if (JSON.stringify(segmentsInfoCache) === JSON.stringify(segmentsInfo_)) {
+                console.log(` --- segmentsInfo_ the same don't need to send   { ${socket.id} } `)
+                return
+            }
+
+            console.log(`\n\n **** SegmentsInfo_ is different, send to socket id { ${socket.id} }, segmentsInfoCache:{ ${JSON.stringify(segmentsInfoCache)} }`)
+            io.to(socket.id).emit("segmentsInfo", segmentsInfoCache)
+
+        } catch (e) {
+            console.log('segmentsInfoError:', e)
+            metrics.influxdb(500, `segmentsInfoError`)
+        }
+
+    })
+
+    socket.on('lpInfo', async (lpInfo_) => {
+        try {
+            let lpInfoCache = await getDataCache('lpInfo') || []
+
+            if (lpInfoCache.length === 0) {
+                console.log('lpInfoCache  is NULL')
+                return
+            }
+            if (JSON.stringify(lpInfoCache) === JSON.stringify(lpInfo_)) {
+                console.log(` --- lpInfoCache the same don't need to send   { ${socket.id} } `)
+                return
+            }
+
+            console.log(` **** lpInfoCache is different, send to socket id { ${socket.id} }, lpInfoCache:{ ${JSON.stringify(lpInfoCache)} }`)
+            io.to(socket.id).emit("lpInfo", lpInfoCache)
+
+        } catch (e) {
+            console.log('lpInfoError:', e)
+            metrics.influxdb(500, `lpInfoError`)
         }
 
     })
@@ -542,268 +588,27 @@ server.listen({port: config.port}, () => {
     console.log(`\n🚀\x1b[35m Server ready at http://localhost:${config.port}, env:${config.env} \x1b[0m \n`)
 })
 
-setInterval(async () => {
-    if (config.env === 'development') return
-    try {
-        let files = await getLocalFiles(config.recipe.folder)
-        const computerName = os.hostname()
-        console.log(`getLocalFilesDebug for computerName:${computerName}, files:${JSON.stringify(files)}`)
-        if (files.length === 0) {
-            console.log(`I am not able to get the Size of recipe,  No files in folder ${config.recipe.folder}`)
-            metrics.influxdb(500, `fileSizeAllRecipeNotExists`)
-            return
-        }
-        let file1 = files[0] // aff website
-        let file2 = files[1] //aff
-        let file3 = files[2]//camp
-        let file4 = files[3]//offer
-        let fileSizeOffer
-        let fileSizeCampaign
-        let fileSizeAffiliates
-        let fileSizeAffiliateWebsites
+const {
+    setFileSizeInfo,
+    setRecipeFiles,
+} = require(`./crons/recipes`)
 
+setInterval(setFileSizeInfo, 900000) //  900000 -> 6.5 min
+setInterval(setRecipeFiles, 300000) // 300000 -> 5 min
 
-        if (file1) {
-            fileSizeAffiliateWebsites = await getFileSize(file1) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeAffilaiteWebsitesNotExists-${computerName}`)
-        }
+setTimeout(setRecipeFiles, 10000)
+setTimeout(setFileSizeInfo, 20000)
 
-        if (file2) {
-            fileSizeAffiliates = await getFileSize(file2) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeAffilaitesNotExists-${computerName}`)
-        }
+const {
+    setSegmentsToRedis,
+    setLpToRedis
+} = require(`./crons/segments`)
 
+setInterval(setSegmentsToRedis, 240000) //  240000 -> 4 min
+setTimeout(setSegmentsToRedis, 9000)
 
-        if (file3) {
-            fileSizeCampaign = await getFileSize(file3) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeCampaignsNotExists-${computerName}`)
-        }
+setInterval(setLpToRedis, 246000) //  246000 -> 4.1 min
+setTimeout(setLpToRedis, 9000)
 
-
-        if (file4) {
-            fileSizeOffer = await getFileSize(file4) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeOffersNotExists-${computerName}`)
-        }
-
-
-        console.log(`File size for computerName:${computerName}  fileSizeAffiliates:${fileSizeAffiliates}, fileSizeCampaign:${fileSizeCampaign}, fileSizeOffer:${fileSizeOffer}, fileSizeAffiliateWebsites:${fileSizeAffiliateWebsites}`)
-
-        // console.log('fileSizeOffer:', fileSizeOffer)
-        // console.log('fileSizeCampaign:', fileSizeCampaign)
-        let fileSizeInfo = {}
-        if (fileSizeOffer) {
-            fileSizeInfo.offer = Number(fileSizeOffer)
-        }
-        if (fileSizeCampaign) {
-            fileSizeInfo.campaign = Number(fileSizeCampaign)
-        }
-        if (fileSizeAffiliates) {
-            fileSizeInfo.affiliates = Number(fileSizeAffiliates)
-        }
-
-        if (fileSizeAffiliateWebsites) {
-            fileSizeInfo.affiliateWebsites = Number(fileSizeAffiliateWebsites)
-        }
-
-        console.log(`Set fileSizeInfo:${JSON.stringify(fileSizeInfo)}`)
-        await setDataCache(`fileSizeInfo`, fileSizeInfo)
-
-        let blockedIpInfo = await blockedIp()
-        await setDataCache(`blockedIp`, blockedIpInfo)
-
-        metrics.sendMetricsSystem(
-            fileSizeInfo,
-            clients.length || 0
-        )
-
-    } catch (e) {
-        console.log('getFilesSizeError:', e)
-        metrics.influxdb(500, `getFilesSizeError'`)
-    }
-
-}, 390000) // every 6,5 min
-
-
-setInterval(async () => {
-
-    const computerName = os.hostname()
-    try {
-        if (config.env === 'development') return
-
-        let files = await getLocalFiles(config.recipe.folder)
-        console.log(`\nCreate files campaign and offer, computerName:${computerName}, files:${JSON.stringify(files)}, ConfigRecipeFolder:${JSON.stringify(config.recipe)}  `)
-        if (files.length === 0) {
-            console.log(`no files in folder:${JSON.stringify(config.recipe)} created `)
-            await createRecipeCampaign()
-            await createRecipeOffers()
-            await createRecipeAffiliates()
-            await createRecipeAffiliateWebsite()
-            metrics.influxdb(200, `createRecipeFiles_${computerName}`)
-            return
-        }
-
-        let file1 = files[0]
-        let file2 = files[1]
-        let file3 = files[2]
-        let file4 = files[3]
-        if (file1) {
-            await deleteFile(file1)
-        }
-        if (file2) {
-            await deleteFile(file2)
-        }
-        if (file3) {
-            await deleteFile(file3)
-        }
-
-        if (file4) {
-            await deleteFile(file4)
-        }
-        await createRecipeCampaign()
-        await createRecipeOffers()
-        await createRecipeAffiliates()
-        await createRecipeAffiliateWebsite()
-
-        metrics.influxdb(200, `createRecipeFiles-${computerName}`)
-    } catch (e) {
-        metrics.influxdb(500, `createRecipeFileError-${computerName}`)
-        console.log('create files campaign and offer error:', e)
-    }
-
-}, 300000) // 300000 every 5 min
-
-setTimeout(async () => {
-
-    if (config.env === 'development') return
-
-    console.log('Create recipe file first time')
-    try {
-        let files = await getLocalFiles(config.recipe.folder)
-        if (files.length === 0) {
-            console.log(`no files in folder:${JSON.stringify(config.recipe)} created `)
-            await createRecipeCampaign()
-            await createRecipeOffers()
-            await createRecipeAffiliates()
-            await createRecipeAffiliateWebsite()
-            await setDataCache(`blockedIp`, await blockedIp())
-            return
-        }
-
-        let file1 = files[0]
-        let file2 = files[1]
-        let file3 = files[2]
-        let file4 = files[3]
-        if (file1) {
-            await deleteFile(file1)
-        }
-        if (file2) {
-            await deleteFile(file2)
-        }
-        if (file3) {
-            await deleteFile(file3)
-        }
-
-        if (file4) {
-            await deleteFile(file4)
-        }
-        await createRecipeCampaign()
-        await createRecipeOffers()
-        await createRecipeAffiliates()
-        await createRecipeAffiliateWebsite()
-
-        let blockedIpInfo = await blockedIp()
-        await setDataCache(`blockedIp`, blockedIpInfo)
-    } catch (e) {
-        metrics.influxdb(500, `createRecipeFileFirstTimeError'`)
-        console.log('create files campaign and offer first time error:', e)
-    }
-
-}, 10000)
-
-setTimeout(async () => {
-    if (config.env === 'development') return
-    console.log('Set fileSizeInfo first time')
-    try {
-        let files = await getLocalFiles(config.recipe.folder)
-        const computerName = os.hostname()
-        console.log(`getLocalFilesDebug for computerName:${computerName}, files:${JSON.stringify(files)}`)
-        if (files.length === 0) {
-            console.log(`I am not able to get the Size of recipe,  No files in folder ${config.recipe.folder}`)
-            metrics.influxdb(500, `fileSizeAllRecipeNotExists`)
-            return
-        }
-        let file1 = files[0] // aff website
-        let file2 = files[1] //aff
-        let file3 = files[2]//camp
-        let file4 = files[3]//offer
-        let fileSizeOffer
-        let fileSizeCampaign
-        let fileSizeAffiliates
-        let fileSizeAffiliateWebsites
-
-
-        if (file1) {
-            fileSizeAffiliateWebsites = await getFileSize(file1) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeAffilaiteWebsitesNotExists-${computerName}`)
-        }
-
-        if (file2) {
-            fileSizeAffiliates = await getFileSize(file2) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeAffilaitesNotExists-${computerName}`)
-        }
-
-
-        if (file3) {
-            fileSizeCampaign = await getFileSize(file3) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeCampaignsNotExists-${computerName}`)
-        }
-
-
-        if (file4) {
-            fileSizeOffer = await getFileSize(file4) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeOffersNotExists-${computerName}`)
-        }
-
-
-        console.log(`File size for computerName:${computerName}  fileSizeAffiliates:${fileSizeAffiliates}, fileSizeCampaign:${fileSizeCampaign}, fileSizeOffer:${fileSizeOffer}, fileSizeAffiliateWebsites:${fileSizeAffiliateWebsites}`)
-
-        // console.log('fileSizeOffer:', fileSizeOffer)
-        // console.log('fileSizeCampaign:', fileSizeCampaign)
-        let fileSizeInfo = {}
-        if (fileSizeOffer) {
-            fileSizeInfo.offer = Number(fileSizeOffer)
-        }
-        if (fileSizeCampaign) {
-            fileSizeInfo.campaign = Number(fileSizeCampaign)
-        }
-        if (fileSizeAffiliates) {
-            fileSizeInfo.affiliates = Number(fileSizeAffiliates)
-        }
-
-        if (fileSizeAffiliateWebsites) {
-            fileSizeInfo.affiliateWebsites = Number(fileSizeAffiliateWebsites)
-        }
-
-        console.log(`Set fileSizeInfo:${JSON.stringify(fileSizeInfo)}`)
-        await setDataCache(`fileSizeInfo`, fileSizeInfo)
-        metrics.sendMetricsSystem(
-            fileSizeInfo,
-            clients.length || 0
-        )
-
-    } catch (e) {
-        console.log('getFilesSizeError:', e)
-        metrics.influxdb(500, `getFilesSizeError'`)
-    }
-
-}, 20000)
 
 const waitFor = delay => new Promise(resolve => setTimeout(resolve, delay))
