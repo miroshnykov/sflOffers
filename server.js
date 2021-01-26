@@ -310,16 +310,49 @@ app.get('/testAffiliateWebsites', async (req, res, next) => {
     }
 })
 
-app.get('/segements', async (req, res, next) => {
-    const {getSegments} = require('./db/segments')
+// app.get('/segements', async (req, res, next) => {
+//     const {getSegments} = require('./db/segments')
+//     let response = {}
+//     try {
+//         let segments = await getSegments()
+//
+//         response.segments = segments
+//         res.send(response)
+//     } catch (e) {
+//         response.err = 'error segements' + JSON.stringify(e)
+//         console.log(e)
+//         res.send(response)
+//     }
+// })
+
+app.get('/segments', async (req, res, next) => {
+
     let response = {}
     try {
-        let segments = await getSegments()
+        let segmentsCache = await getDataCache('segmentsInfo') || []
+        let lpCache = await getDataCache('lpInfo') || []
 
-        response.segments = segments
+        response.segmentsCache = segmentsCache
+        response.lpCache = lpCache
         res.send(response)
     } catch (e) {
-        response.err = 'error segements' + JSON.stringify(e)
+        response.err = 'error targeting' + JSON.stringify(e)
+        console.log(e)
+        res.send(response)
+    }
+})
+
+
+app.get('/targeting', async (req, res, next) => {
+
+    let response = {}
+    try {
+        let targetingCache = await getDataCache('targetingInfo') || []
+
+        response.targetingCache = targetingCache
+        res.send(response)
+    } catch (e) {
+        response.err = 'error targeting' + JSON.stringify(e)
         console.log(e)
         res.send(response)
     }
@@ -610,5 +643,11 @@ setTimeout(setSegmentsToRedis, 9000)
 setInterval(setLpToRedis, 246000) //  246000 -> 4.1 min
 setTimeout(setLpToRedis, 9000)
 
+const {
+    setTargetingRedis
+} = require(`./crons/targeting`)
+
+setInterval(setTargetingRedis, 600000) //  600000 -> 10 min
+setTimeout(setTargetingRedis, 9000)
 
 const waitFor = delay => new Promise(resolve => setTimeout(resolve, delay))
