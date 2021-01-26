@@ -325,6 +325,9 @@ app.get('/testAffiliateWebsites', async (req, res, next) => {
 //     }
 // })
 
+// https://sfl-offers-stage1.surge.systems/segments
+// https://sfl-offers.surge.systems/segments
+
 app.get('/segments', async (req, res, next) => {
 
     let response = {}
@@ -342,6 +345,9 @@ app.get('/segments', async (req, res, next) => {
     }
 })
 
+
+// https://sfl-offers-stage1.surge.systems/targeting
+// https://sfl-offers.surge.systems/targeting
 
 app.get('/targeting', async (req, res, next) => {
 
@@ -451,6 +457,29 @@ io.on('connection', async (socket) => {
         } catch (e) {
             console.log('lpInfoError:', e)
             metrics.influxdb(500, `lpInfoError`)
+        }
+
+    })
+
+    socket.on('targetingInfo', async (targetingInfo) => {
+        try {
+            let targetingInfoCache = await getDataCache('targetingInfo') || []
+
+            if (targetingInfoCache.length === 0) {
+                console.log('targetingInfoCache  is NULL')
+                return
+            }
+            if (JSON.stringify(targetingInfoCache) === JSON.stringify(targetingInfo)) {
+                console.log(` --- targetingInfo the same don't need to send   { ${socket.id} } `)
+                return
+            }
+
+            console.log(` **** lpInfoCache is different, send to socket id { ${socket.id} }, lpInfoCache:{ ${JSON.stringify(targetingInfoCache)} }`)
+            io.to(socket.id).emit("targetingInfo", targetingInfoCache)
+
+        } catch (e) {
+            console.log('targetingInfoError:', e)
+            metrics.influxdb(500, `targetingInfoError`)
         }
 
     })
