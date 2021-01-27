@@ -144,26 +144,26 @@ const createRecipeOffers = async () => {
 
         let offerFormat = []
         for (const offer of offerData) {
-            // console.log(offer.offerId)
-            const {capRedirectOfferDay, capRedirectOfferWeek, capRedirectOfferMonth} = offer
+            const {capDaySetup, capWeekSetup, capMonthSetup, capDayCalculate, capWeekCalculate, capMonthCalculate, capRedirect} = offer
             if (
-                capRedirectOfferDay
-                || capRedirectOfferWeek
-                || capRedirectOfferMonth) {
-                let capOverrideOfferId = capRedirectOfferDay || capRedirectOfferWeek || capRedirectOfferMonth
+                capDaySetup
+                || capWeekSetup
+                || capMonthSetup) {
 
-                console.log('capOverrideOfferId:', capOverrideOfferId)
-                let offerInfo = await getOffer(capOverrideOfferId)
-                // console.log(offerInfo)
-                offer.landingPageIdOrigin = offer.landingPageId
-                offer.landingPageUrlOrigin = offer.landingPageUrl
-                offer.landingPageId = offerInfo && offerInfo[0].landingPageId || 0
-                offer.landingPageUrl = offerInfo && offerInfo[0].landingPageUrl || 0
-                offer.capOverrideOfferId = offerInfo && offerInfo[0].offerId || 0
+                if (capDayCalculate < 0 || capWeekCalculate < 0 || capMonthCalculate < 0) {
+                    let offerInfo = await getOffer(capRedirect)
+                    console.log(`\n *** Cap by offerId { ${offer.offerId} } offerInfo:${JSON.stringify(offer)}`)
+                    offer.landingPageIdOrigin = offer.landingPageId
+                    offer.landingPageUrlOrigin = offer.landingPageUrl
+                    offer.landingPageId = offerInfo && offerInfo[0].landingPageId || 0
+                    offer.landingPageUrl = offerInfo && offerInfo[0].landingPageUrl || 0
+                    offer.capOverrideOfferId = offerInfo && offerInfo[0].offerId || 0
+                    offerFormat.push(offer)
+                }
 
             }
 
-            offerFormat.push(offer)
+
         }
 
         const computerName = os.hostname()

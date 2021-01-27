@@ -249,27 +249,28 @@ app.get('/testOffer', async (req, res, next) => {
         let offerData = await offerInfo()
         let offerFormat = []
         for (const offer of offerData) {
-            console.log(offer.offerId)
-            const {capRedirectOfferDay, capRedirectOfferWeek, capRedirectOfferMonth} = offer
+            const {capDaySetup, capWeekSetup, capMonthSetup, capDayCalculate, capWeekCalculate, capMonthCalculate, capRedirect} = offer
             if (
-                capRedirectOfferDay
-                || capRedirectOfferWeek
-                || capRedirectOfferMonth) {
-                let overrideOfferId = capRedirectOfferDay || capRedirectOfferWeek || capRedirectOfferMonth
+                capDaySetup
+                || capWeekSetup
+                || capMonthSetup) {
 
-                console.log('overrideOfferId:', overrideOfferId)
-                let offerInfo = await getOffer(overrideOfferId)
-                console.log(offerInfo)
-                offer.landingPageIdOrigin = offer.landingPageId
-                offer.landingPageUrlOrigin = offer.landingPageUrl
-                offer.landingPageId = offerInfo[0].landingPageId
-                offer.landingPageUrl = offerInfo[0].landingPageUrl
-                offer.capOverrideOfferId = offerInfo[0].offerId
+                if (capDayCalculate < 0 || capWeekCalculate < 0 || capMonthCalculate < 0) {
+                    let offerInfo = await getOffer(capRedirect)
+                    console.log(`\n *** Cap by offerId { ${offer.offerId} } offerInfo:${JSON.stringify(offer)}`)
+                    offer.landingPageIdOrigin = offer.landingPageId
+                    offer.landingPageUrlOrigin = offer.landingPageUrl
+                    offer.landingPageId = offerInfo[0].landingPageId
+                    offer.landingPageUrl = offerInfo[0].landingPageUrl
+                    offer.capOverrideOfferId = offerInfo[0].offerId
+                    offerFormat.push(offer)
+                }
 
             }
 
-            offerFormat.push(offer)
+
         }
+        response.offerData = offerData
         response.offerFormat = offerFormat
         res.send(response)
     } catch (e) {

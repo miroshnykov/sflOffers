@@ -16,31 +16,33 @@ const offerInfo = async () => {
                    g.rules                         AS geoRules, 
                    g.sfl_offer_id                  AS geoOfferId, 
                    lps.rules                       AS customLpRules,
-                   (SELECT IF((SELECT c.clicks_day 
-                                               FROM   sfl_offers_cap_current_data c 
-                                               WHERE  c.sfl_offer_id = o.id) - c1.clicks_day  > 0, NULL, 
-                                   c1.clicks_redirect_offer_id) 
-                    FROM   sfl_offers_cap c1 
-                    WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferDay, 
-                   (SELECT IF((SELECT c.clicks_week 
-                                                FROM   sfl_offers_cap_current_data c 
-                                                WHERE  c.sfl_offer_id = o.id) - c1.clicks_week  > 0, NULL, 
-                                   c1.clicks_redirect_offer_id) 
-                    FROM   sfl_offers_cap c1 
-                    WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferWeek, 
-                   (SELECT IF((SELECT c.clicks_month 
-                                                 FROM   sfl_offers_cap_current_data c 
-                                                 WHERE  c.sfl_offer_id = o.id)- c1.clicks_month > 0, NULL, 
-                                   c1.clicks_redirect_offer_id) 
-                    FROM   sfl_offers_cap c1 
-                    WHERE  c1.sfl_offer_id = o.id) AS capRedirectOfferMonth 
+--                   (SELECT c.clicks_day FROM   sfl_offers_cap_current_data c WHERE  c.sfl_offer_id = o.id) AS capDayCurrentData,
+                   (SELECT c1.clicks_day FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id AND c1.clicks_day !=0) AS capDaySetup, 
+                   (SELECT c.clicks_day FROM   sfl_offers_cap_current_data c WHERE  c.sfl_offer_id = o.id)- 
+                   (SELECT c1.clicks_day FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id)                    
+                        AS capDayCalculate,
+
+--                   (SELECT c.clicks_week FROM   sfl_offers_cap_current_data c WHERE  c.sfl_offer_id = o.id) AS capWeekCurrentData,
+                   (SELECT c1.clicks_week FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id AND c1.clicks_day !=0) AS capWeekSetup, 
+                                      (SELECT c.clicks_week FROM   sfl_offers_cap_current_data c WHERE  c.sfl_offer_id = o.id) -
+                   (SELECT c1.clicks_week FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id) 
+                        AS capWeekCalculate,                    
+                   
+--                   (SELECT c.clicks_month FROM   sfl_offers_cap_current_data c WHERE  c.sfl_offer_id = o.id) AS capMonthCurrentData,
+                   (SELECT c1.clicks_month FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id AND c1.clicks_day !=0) AS capMonthSetup, 
+                   (SELECT c.clicks_month FROM   sfl_offers_cap_current_data c WHERE  c.sfl_offer_id = o.id) -                   
+                   (SELECT c1.clicks_month FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id) 
+
+                        AS capMonthCalculate,
+                                        
+                   (SELECT c1.clicks_redirect_offer_id  FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id) AS capRedirect                
             FROM   sfl_offers o 
                    left join sfl_offer_landing_pages lp 
                           ON lp.id = o.sfl_offer_landing_page_id 
                    left join sfl_offer_geo g 
                           ON g.sfl_offer_id = o.id  
                    left join sfl_offer_custom_landing_pages lps
-                          ON o.id = lps.sfl_offer_id                                          
+                          ON o.id = lps.sfl_offer_id                                         
         `)
         await dbMysql.end()
         // console.log(`\nget offerInfo count: ${result.length}`)
