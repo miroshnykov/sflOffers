@@ -158,10 +158,10 @@ const createRecipeOffers = async () => {
                     offer.landingPageId = offerInfo && offerInfo[0].landingPageId || 0
                     offer.landingPageUrl = offerInfo && offerInfo[0].landingPageUrl || 0
                     offer.capOverrideOfferId = offerInfo && offerInfo[0].offerId || 0
-                    offerFormat.push(offer)
                 }
 
             }
+            offerFormat.push(offer)
 
 
         }

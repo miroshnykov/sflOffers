@@ -263,10 +263,11 @@ app.get('/testOffer', async (req, res, next) => {
                     offer.landingPageId = offerInfo[0].landingPageId
                     offer.landingPageUrl = offerInfo[0].landingPageUrl
                     offer.capOverrideOfferId = offerInfo[0].offerId
-                    offerFormat.push(offer)
+
                 }
 
             }
+            offerFormat.push(offer)
 
 
         }
