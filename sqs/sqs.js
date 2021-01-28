@@ -16,7 +16,7 @@ const sqsProcess = async (param = '') => {
     try {
         let dataQueue = await receiveMessage()
         if (!dataQueue.Messages) {
-            //console.log(`no records from queue sfl-offers-events`)
+            console.log(`no records from queue sfl-offers-events`)
             return
         }
         let messages = []

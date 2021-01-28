@@ -612,6 +612,7 @@ io.on('connection', async (socket) => {
     const sendUpdRedis = async () => {
         try {
             let messages = await sqsProcess()
+            console.log(` *** sendUpdRedis message:${JSON.stringify(messages)}`)
             if (!messages) return
             for (const message of messages) {
 
