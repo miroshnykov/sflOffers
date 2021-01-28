@@ -610,15 +610,17 @@ io.on('connection', async (socket) => {
 
 
     const sendUpdRedis = async () => {
+        const computerName = os.hostname()
         try {
+            if (config.env === 'development') return
             let messages = await sqsProcess()
             console.log(` *** sendUpdRedis message:${JSON.stringify(messages)}`)
             if (!messages) return
             for (const message of messages) {
 
                 // console.log(`send to socket ${socket.id} messageId:${message.id}, action:${message.action}, type:${message.type}`)
-                console.log(`send to socket ${socket.id}, message:${JSON.stringify(message)}`)
-                metrics.influxdb(200, `sendUpdRecipeOneRecord`)
+                console.log(`send to socket ${socket.id}, computerName:${computerName} message:${JSON.stringify(message)}`)
+                metrics.influxdb(200, `sendUpdRecipeOneRecord-${computerName}`)
                 io.to(socket.id).emit("updRecipe", message)
             }
 
