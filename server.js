@@ -627,7 +627,7 @@ io.on('connection', async (socket) => {
         }
     }
 
-    updRedis[socket.id] = setInterval(sendUpdRedis, 60000) //1 min
+    updRedis[socket.id] = setInterval(sendUpdRedis, 30000) // 30 sec
 
     socket.on('disconnect', () => {
         clients.splice(clients.indexOf(socket.id, 1))
