@@ -621,7 +621,8 @@ io.on('connection', async (socket) => {
                 // console.log(`send to socket ${socket.id} messageId:${message.id}, action:${message.action}, type:${message.type}`)
                 console.log(`send to socket ${socket.id}, computerName:${computerName} message:${JSON.stringify(message)}`)
                 metrics.influxdb(200, `sendUpdRecipeOneRecord-${computerName}`)
-                io.to(socket.id).emit("updRecipe", message)
+                io.sockets.emit("updRecipe", message)
+                // io.to(socket.id).emit("updRecipe", message)
             }
 
         } catch (e) {
