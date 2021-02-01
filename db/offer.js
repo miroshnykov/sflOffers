@@ -15,6 +15,7 @@ const offerInfo = async () => {
                    o.sfl_offer_geo_id              AS sflOfferGeoId, 
                    g.rules                         AS geoRules, 
                    g.sfl_offer_id                  AS geoOfferId, 
+                   o.conversion_type               AS conversionType,
                    lps.rules                       AS customLpRules,
 --                   (SELECT c.clicks_day FROM   sfl_offers_cap_current_data c WHERE  c.sfl_offer_id = o.id) AS capDayCurrentData,
                    (SELECT c1.clicks_day FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id AND c1.clicks_day !=0) AS capDaySetup, 
