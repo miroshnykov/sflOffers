@@ -7,6 +7,7 @@ const offerInfo = async () => {
             SELECT o.id                            AS offerId, 
                    o.name                          AS name, 
                    o.advertiser                    AS advertiser, 
+                   o.verticals                    AS verticals, 
                    o.status                        AS status, 
                    o.payin                         AS payin, 
                    o.payout                        AS payout, 
