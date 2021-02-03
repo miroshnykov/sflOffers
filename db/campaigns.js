@@ -30,10 +30,11 @@ const addCampaign = async (offerId) => {
 
     let offerName = `autoCreat-${dateAdd}`
     let affId =  142480
+    let status =  `active`
     try {
         let result = await dbMysql.query(` 
-            INSERT INTO sfl_offer_campaigns (name, sfl_offer_id, affiliate_id, date_added) VALUES (?,?,?,?)                         
-        `,[offerName,offerId, affId,dateAdd])
+            INSERT INTO sfl_offer_campaigns (name, sfl_offer_id, affiliate_id, status, date_added) VALUES (?,?,?,?,?)                         
+        `,[offerName,offerId, affId,status, dateAdd])
         await dbMysql.end()
         result.id = result.insertId || 0
         console.log(`\ngcreate campaign: ${JSON.stringify(result)} , offerName:${offerName}`)
