@@ -241,6 +241,40 @@ app.get('/sqs', async (req, res, next) => {
     }
 })
 
+const {addCampaign} = require('./db/campaigns')
+
+// http://localhost:8091/addcampaign?offerId=28
+// https://sfl-offers.surge.systems/addcampaign?offerId=28
+
+app.get('/addcampaign', async (req, res, next) => {
+    let response = {}
+
+    try {
+        let query = req.query
+        let offerId = query.offerId || 0
+        response.offerId  = offerId
+        if (offerId){
+            let res = await addCampaign(offerId)
+            response.campaignInfo  = res
+            let obj = {
+                offerId: `${offerId}`,
+                campaignId: `${res.id}`
+            }
+            let string = JSON.stringify(obj)
+
+            let encryptData = encrypt(string)
+            console.log('encryptData:', encryptData)
+            response.encryptData = `https://sfl-engin.surge.systems/ad?offer=${encryptData}`
+
+        }
+
+        res.send(response)
+    } catch (e) {
+        response.err = 'error create Campaign' + JSON.stringify(e)
+        res.send(response)
+    }
+})
+
 const {offerInfo, getOffer} = require('./db/offer')
 
 app.get('/testOffer', async (req, res, next) => {
