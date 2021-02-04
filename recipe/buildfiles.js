@@ -150,9 +150,9 @@ const createRecipeOffers = async () => {
                 || capWeekSetup
                 || capMonthSetup) {
 
-                if (capDayCalculate > 0 || capWeekCalculate > 0 || capMonthCalculate > 0) {
+                if (capDayCalculate < 0 || capWeekCalculate < 0 || capMonthCalculate < 0) {
                     let offerInfo = await getOffer(capRedirect)
-                    console.log(`\n *** Cap by offerId { ${offer.offerId} } offerInfo:${JSON.stringify(offer)}`)
+                    console.log(`\n *** Cap by offerId { ${offer.offerId} } offerInfo:${JSON.stringify(offerInfo)}`)
                     offer.landingPageIdOrigin = offer.landingPageId
                     offer.landingPageUrlOrigin = offer.landingPageUrl
                     offer.landingPageId = offerInfo && offerInfo[0].landingPageId || 0
