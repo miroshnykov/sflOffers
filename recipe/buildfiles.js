@@ -161,7 +161,7 @@ const createRecipeOffers = async () => {
                 }
 
             }
-            console.log('offer:', offer)
+            // console.log('offer:', offer)
             offerFormat.push(offer)
 
 
