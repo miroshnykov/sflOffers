@@ -150,14 +150,21 @@ const createRecipeOffers = async () => {
                 || capWeekSetup
                 || capMonthSetup) {
 
-                if (capDayCalculate < 0 || capWeekCalculate < 0 || capMonthCalculate < 0) {
-                    let offerInfo = await getOffer(capRedirect)
-                    console.log(`\n *** Cap by offerId { ${offer.offerId} } offerInfo:${JSON.stringify(offerInfo)}`)
-                    offer.landingPageIdOrigin = offer.landingPageId
-                    offer.landingPageUrlOrigin = offer.landingPageUrl
-                    offer.landingPageId = offerInfo && offerInfo[0].landingPageId || 0
-                    offer.landingPageUrl = offerInfo && offerInfo[0].landingPageUrl || 0
-                    offer.capOverrideOfferId = offerInfo && offerInfo[0].offerId || 0
+                if (capDayCalculate > 0 || capWeekCalculate > 0 || capMonthCalculate > 0) {
+                    let offerRedirectInfo = await getOffer(capRedirect)
+                    console.log(`\n *** Cap by offerId { ${offer.offerId} } redirectOffer { ${capRedirect} } offerInfo:${JSON.stringify(offer)}`)
+                    console.log(` *** offerRedirectInfo:${JSON.stringify(offerRedirectInfo)} \n`)
+                    if (offerRedirectInfo.length !== 0) {
+                        offer.landingPageIdOrigin = offer.landingPageId
+                        offer.landingPageUrlOrigin = offer.landingPageUrl
+                        offer.landingPageId = offerRedirectInfo[0].landingPageId
+                        offer.landingPageUrl = offerRedirectInfo[0].landingPageUrl
+                        offer.capOverrideOfferId = capRedirect
+                    } else {
+                        console.log(`\n *** No cap redirect offer  { ${capRedirect} } offer:${JSON.stringify(offer)}`)
+                    }
+
+
                 }
 
             }
