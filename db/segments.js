@@ -9,6 +9,7 @@ const getSegments = async () => {
                   vsd.position AS conditionPosition, 
                   s.name AS name, 
                   s.id AS segmentId, 
+                  (select COUNT(*)  from sfl_segment_dimension where sfl_segment_id = s.id) AS countConditionsBySegment,
                   vsd.segment_rule_index AS segmentRuleIndex, 
                   vd.name AS dimension, 
                   vsd.value AS value, 

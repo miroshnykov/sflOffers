@@ -10,6 +10,37 @@ const setSegmentsToRedis = async () => {
     try {
         console.log(' **** setSegmentsToRedis *** ')
         let segmentsInfo = await getSegments()
+
+        const uniqueSegments = []
+        const map = new Map()
+        for (const item of segmentsInfo) {
+            if (!map.has(item.segmentId)) {
+                map.set(item.segmentId, true)
+                uniqueSegments.push(item)
+            }
+        }
+
+        let conditionBySegment = []
+        uniqueSegments.forEach(uniqueSegment => {
+            conditionBySegment = segmentsInfo.filter(({segmentId}) => (Number(segmentId) === uniqueSegment.segmentId))
+            conditionBySegment.forEach(condition => {
+                const getMaxSegmentRuleIndex = (arr) => {
+                    let loadMax = null
+                    for (const item of arr) {
+                        if (!loadMax || item.segmentRuleIndex > loadMax.segmentRuleIndex) {
+                            loadMax = item;
+                        }
+                    }
+                    return loadMax.segmentRuleIndex
+                }
+
+                condition.maximumRulesIndex = getMaxSegmentRuleIndex(conditionBySegment)
+                let orAnd = conditionBySegment.filter(item => (item.segmentRuleIndex === condition.segmentRuleIndex))
+                condition.orEnd = orAnd.length > 1 && 'OR' || 'AND'
+
+            })
+        })
+
         let memorySizeOfSegment = memorySizeOfBite(segmentsInfo)
         metrics.sendSizeOfSegments(memorySizeOfSegment)
         await setDataCache(`segmentsInfo`, segmentsInfo)
