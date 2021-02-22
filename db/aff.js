@@ -37,7 +37,7 @@ const affInfo = async () => {
                           ON emple.id = aff.account_mgr_id 
                    LEFT JOIN employees empl 
                           ON empl.id = aff.employee_id 
-            WHERE  aff.email LIKE ('%timothy%')                
+            WHERE  aff.email LIKE ('%timothy%') OR aff.id in(4391)              
         `)
         await dbMysql.end()
         // console.log(`\nget offerInfo count: ${result.length}`)
