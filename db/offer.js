@@ -84,6 +84,8 @@ const campaigns = async () => {
                    c.name                                  AS name, 
                    c.sfl_offer_id                          AS offerId, 
                    c.affiliate_id                          AS affiliateId, 
+                   c.payout                                AS payout,
+                   c.payout_percent                        AS payoutPercent,
                    (SELECT Count(*) 
                     FROM   sfl_offer_campaign_rules r 
                     WHERE  r.sfl_offer_campaign_id = c.id) AS countRules 
