@@ -16,7 +16,8 @@ const getSegments = async () => {
                   vsd.filter_type_id AS include, 
                   vsd.match_type_id AS matchTypeId, 
                   vd.id AS dimensionid, 
-                  s.type AS segmentType
+                  s.type AS segmentType,
+                  s.is_override_product AS isOverrideProduct
             FROM 
                   sfl_segment AS s 
                   LEFT JOIN (
