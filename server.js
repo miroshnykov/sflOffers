@@ -497,6 +497,29 @@ io.on('connection', async (socket) => {
 
     })
 
+    socket.on('advertisersInfo', async (advertisersInfo_) => {
+        try {
+            let advertisersInfoCache = await getDataCache('advertisersInfo') || []
+
+            if (advertisersInfoCache.length === 0) {
+                console.log('advertisersInfoCache  is NULL')
+                return
+            }
+            if (JSON.stringify(advertisersInfoCache) === JSON.stringify(advertisersInfo_)) {
+                console.log(` --- advertisersInfo_ the same don't need to send   { ${socket.id} } `)
+                return
+            }
+
+            console.log(` **** advertisersInfo_ is different, send to socket id { ${socket.id} }, lpInfoCache:{ ${JSON.stringify(advertisersInfoCache)} }`)
+            io.to(socket.id).emit("advertisersInfo", advertisersInfoCache)
+
+        } catch (e) {
+            console.log('advertisersInfoError:', e)
+            metrics.influxdb(500, `advertisersInfoError`)
+        }
+
+    })
+
     socket.on('targetingInfo', async (targetingInfo) => {
         try {
             let targetingInfoCache = await getDataCache('targetingInfo') || []
@@ -703,7 +726,8 @@ setTimeout(setFileSizeInfo, 20000)
 
 const {
     setSegmentsToRedis,
-    setLpToRedis
+    setLpToRedis,
+    setAdvertisersToRedis
 } = require(`./crons/segments`)
 
 setInterval(setSegmentsToRedis, 240000) //  240000 -> 4 min
@@ -711,6 +735,10 @@ setTimeout(setSegmentsToRedis, 9000)
 
 setInterval(setLpToRedis, 246000) //  246000 -> 4.1 min
 setTimeout(setLpToRedis, 9000)
+
+setInterval(setAdvertisersToRedis, 252000) //  252000 -> 4.2 min
+setTimeout(setAdvertisersToRedis, 9000)
+
 
 const {
     setTargetingRedis

@@ -1,5 +1,6 @@
 const {getSegments} = require('../db/segments')
 const {getLps} = require('../db/lp')
+const {getAdvertisersProducts} = require('../db/advertisers')
 const {getDataCache, setDataCache} = require('../lib/redis')
 const {memorySizeOfBite} = require('../lib/helper')
 const metrics = require('../lib/metrics')
@@ -66,8 +67,23 @@ const setLpToRedis = async () => {
 
 }
 
+const setAdvertisersToRedis = async () => {
+    if (config.env === 'development') return
+    try {
+        console.log('**** setAdvertisersToRedis *** ')
+        let advertisersInfo = await getAdvertisersProducts()
+        await setDataCache(`advertisersInfo`, advertisersInfo)
+        metrics.influxdb(200, `setAdvertisersToRedis`)
+    } catch (e) {
+        console.log('setAdvertisersToRedisError:', e)
+        metrics.influxdb(500, `setAdvertisersToRedisError`)
+    }
+
+}
+
 module.exports = {
     setSegmentsToRedis,
-    setLpToRedis
+    setLpToRedis,
+    setAdvertisersToRedis
 }
 
