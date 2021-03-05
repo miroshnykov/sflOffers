@@ -19,7 +19,7 @@ const affInfo = async () => {
                           ON emple.id = aff.account_mgr_id 
                    LEFT JOIN employees empl 
                           ON empl.id = aff.employee_id 
-            WHERE  aff.status IN ( 'active', 'suspended','blacklisted' ) 
+            WHERE  aff.status IN ('active', 'suspended', 'blacklisted', 'deleted') 
                    AND aff.salesforce_id <> 0  
             UNION
             SELECT aff.id                                        AS id, 
