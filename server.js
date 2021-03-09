@@ -738,7 +738,7 @@ const {
 } = require(`./crons/recipes`)
 
 setInterval(setFileSizeInfo, 900000) //  900000 -> 6.5 min
-setInterval(setRecipeFiles, 30000) // 300000 -> 5 min
+setInterval(setRecipeFiles, 300000) // 300000 -> 5 min
 
 setTimeout(setRecipeFiles, 10000)
 setTimeout(setFileSizeInfo, 20000)
