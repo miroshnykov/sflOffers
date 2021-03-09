@@ -707,7 +707,7 @@ io.on('connection', async (socket) => {
         }
     }
 
-    updRedis[socket.id] = setInterval(sendUpdRedis, 300000) // 30 sec
+    updRedis[socket.id] = setInterval(sendUpdRedis, 30000) // 30 sec
 
     socket.on('disconnect', () => {
         clients.splice(clients.indexOf(socket.id, 1))
@@ -737,11 +737,11 @@ const {
     setRecipeFiles,
 } = require(`./crons/recipes`)
 
-setInterval(setFileSizeInfo, 20000) //  900000 -> 6.5 min
+setInterval(setFileSizeInfo, 900000) //  900000 -> 6.5 min
 setInterval(setRecipeFiles, 30000) // 300000 -> 5 min
 
 setTimeout(setRecipeFiles, 10000)
-setTimeout(setFileSizeInfo, 2000)
+setTimeout(setFileSizeInfo, 20000)
 
 const {
     setSegmentsToRedis,
