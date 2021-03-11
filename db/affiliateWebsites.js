@@ -3,6 +3,7 @@ let dbMysql = require('./mysqlAdcenterDb').get()
 const affiliateWebsites = async () => {
 
     try {
+        console.time(`affiliateWebsites`)
         let result = await dbMysql.query(` 
             SELECT 
                 GROUP_CONCAT(DISTINCT w.link 
@@ -14,8 +15,9 @@ const affiliateWebsites = async () => {
                 WHERE w.status IN ('active','pending')
                 GROUP BY w.affiliate_id   
         `)
-        await dbMysql.end()
-        console.log(`\nget all affiliateWebsites count: ${result.length}`)
+        await dbMysql.end(`affiliateWebsites`)
+        console.log(` *** AffiliateWebsites count:${result.length}`)
+        console.timeEnd(`affiliateWebsites`)
         return result
     } catch (e) {
         console.log(e)

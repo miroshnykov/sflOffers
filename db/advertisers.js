@@ -20,8 +20,8 @@ const getAdvertisersProducts = async () => {
         `)
         await dbMysql.end()
 
+        console.log(` *** AdvertisersProducts count:${result.length}`)
         console.timeEnd('getAdvertisersProducts')
-        console.log(`getAdvertisersProducts count:${result.length}\n`)
         return result
     } catch (e) {
         console.log(e)

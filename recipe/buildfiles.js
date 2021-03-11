@@ -229,7 +229,7 @@ const createRecipeAffiliates = async () => {
         }
 
         const computerName = os.hostname()
-        console.log(`get affiliates count:${affData.length}, from computer:${computerName} `)
+        console.log(`CreateRecipeAffiliates affiliates count:${affData.length}, from computer:${computerName} `)
         let filePath = config.recipe.folder + await generateFilePath('affiliates')
         let fileFolder = path.dirname(filePath);
         await createRecursiveFolder(fileFolder)
