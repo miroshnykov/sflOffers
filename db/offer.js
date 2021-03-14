@@ -6,7 +6,8 @@ const offerInfo = async () => {
         let result = await dbMysql.query(` 
             SELECT o.id                            AS offerId, 
                    o.name                          AS name, 
-                   o.advertiser                    AS advertiser, 
+                   a.id              AS advertiserId,
+                   a.name            AS advertiserName,                   
                    o.verticals                     AS verticals, 
                    o.status                        AS status, 
                    o.payin                         AS payin, 
@@ -27,13 +28,13 @@ const offerInfo = async () => {
                         AS capDayCalculate,
 
 --                   (SELECT c.clicks_week FROM   sfl_offers_cap_current_data c WHERE  c.sfl_offer_id = o.id) AS capWeekCurrentData,
-                   (SELECT c1.clicks_week FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id AND c1.clicks_day !=0) AS capWeekSetup, 
+                   (SELECT c1.clicks_week FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id AND c1.clicks_week !=0) AS capWeekSetup, 
                                       (SELECT c.clicks_week FROM   sfl_offers_cap_current_data c WHERE  c.sfl_offer_id = o.id) -
                    (SELECT c1.clicks_week FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id) 
                         AS capWeekCalculate,                    
                    
 --                   (SELECT c.clicks_month FROM   sfl_offers_cap_current_data c WHERE  c.sfl_offer_id = o.id) AS capMonthCurrentData,
-                   (SELECT c1.clicks_month FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id AND c1.clicks_day !=0) AS capMonthSetup, 
+                   (SELECT c1.clicks_month FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id AND c1.clicks_month !=0) AS capMonthSetup, 
                    (SELECT c.clicks_month FROM   sfl_offers_cap_current_data c WHERE  c.sfl_offer_id = o.id) -                   
                    (SELECT c1.clicks_month FROM   sfl_offers_cap c1 WHERE  c1.sfl_offer_id = o.id) 
 
@@ -46,7 +47,9 @@ const offerInfo = async () => {
                    left join sfl_offer_geo g 
                           ON g.sfl_offer_id = o.id  
                    left join sfl_offer_custom_landing_pages lps
-                          ON o.id = lps.sfl_offer_id                                         
+                          ON o.id = lps.sfl_offer_id  
+                   left join sfl_advertisers a 
+                          ON a.id = o.sfl_advertiser_id                                                                    
         `)
         await dbMysql.end()
         // console.log(`\nget offerInfo count: ${result.length}`)
