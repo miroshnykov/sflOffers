@@ -516,6 +516,29 @@ io.on('connection', async (socket) => {
 
     })
 
+    socket.on('randomSites', async (randomSites_) => {
+        try {
+            let randomSitesCache = await getDataCache('randomSites') || []
+
+            if (randomSitesCache.length === 0) {
+                console.log('randomSitesCache  is NULL')
+                return
+            }
+            if (JSON.stringify(randomSitesCache) === JSON.stringify(randomSites_)) {
+                console.log(` --- randomSitesCache the same don't need to send   { ${socket.id} } `)
+                return
+            }
+
+            console.log(` **** randomSitesCache is different, send to socket id { ${socket.id} }, lpInfoCache:{ ${JSON.stringify(randomSitesCache)} }`)
+            io.to(socket.id).emit("randomSites", randomSitesCache)
+
+        } catch (e) {
+            console.log('randomSitesError:', e)
+            metrics.influxdb(500, `randomSitesError`)
+        }
+
+    })
+
     socket.on('advertisersInfo', async (advertisersInfo_) => {
         try {
             let advertisersInfoCache = await getDataCache('advertisersInfo') || []
@@ -765,5 +788,13 @@ const {
 
 setInterval(setTargetingRedis, 600000) //  600000 -> 10 min
 setTimeout(setTargetingRedis, 9000)
+
+const {
+    setRandomSitesToRedis
+} = require(`./crons/randomSites`)
+
+setInterval(setRandomSitesToRedis, 900000) //  900000 -> 15 min
+setTimeout(setRandomSitesToRedis, 9000) // 45000 -> 45 sec
+
 
 const waitFor = delay => new Promise(resolve => setTimeout(resolve, delay))

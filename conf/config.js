@@ -44,4 +44,6 @@ config.influxdb = {
     intervalDisk: 60000 // 300000 ms = 5 min
 }
 
+config.hyunaRandomSites = 'http://admin-wt.jomediainc.com/api/getRandomSites.php'
+
 module.exports = config;
