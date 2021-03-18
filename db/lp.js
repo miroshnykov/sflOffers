@@ -5,6 +5,7 @@ const getLps = async () => {
     try {
         let result = await dbMysql.query(` 
             SELECT  
+                l.id AS landingPageId,
                 lp.sfl_segment_id       AS segmentId, 
                 l.name                  AS name, 
                 lp.weight               AS weight,
