@@ -1,0 +1,51 @@
+{
+  "redirectTo": 666,
+  "rules": [
+    {
+      "filterGroups": [
+        {
+          "conditions": [
+            {
+              "dimension": "geo",
+              "value": "CA"
+            },
+            {
+              "dimension": "geo",
+              "value": "US"
+            },
+            {
+              "dimension": "geo",
+              "value": "BR"
+            }
+          ]
+        }
+      ],
+      "include": true
+    },
+    {
+      "filterGroups": [
+        {
+          "conditions": [
+            {
+              "dimension": "platform",
+              "value": "android"
+            },
+            {
+              "dimension": "platform",
+              "value": "windows"
+            },
+            {
+              "dimension": "platform",
+              "value": "ios"
+            },
+            {
+              "dimension": "platform",
+              "value": "Windows"
+            }
+          ]
+        }
+      ],
+      "include": true
+    }
+  ]
+}

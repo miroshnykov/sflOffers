@@ -119,37 +119,21 @@ const campaigns = async () => {
 
         }
 
-        let campaignsRules = []
-
-        let ids = ''
         for (const camp of campaignsList) {
-            ids += camp.campaignId + ','
-            campaignsRules.push(camp)
-        }
-        let idsString = ids.slice(0, -1)
-
-        let rules = await dbMysql.query(`
+            let rules = await dbMysql.query(`
             SELECT r.rules AS rules, 
                    r.position AS position, 
                    r.sfl_offer_campaign_id AS campaignId 
             FROM   sfl_offer_campaign_rules r 
             WHERE  r.status = 'active' 
-                   AND r.sfl_offer_campaign_id IN ( ${idsString}) 
+                   AND r.sfl_offer_campaign_id = ${camp.campaignId} 
             ORDER BY r.sfl_offer_campaign_id,r.position ASC 
 
         `)
-        await dbMysql.end()
-
-        let campaignsRulesList = []
-        for (const camp of campaignsList) {
-            let pRules = rules.filter(item => (item.campaignId === camp.campaignId))
-            camp.targetRules = pRules
-            campaignsRulesList.push(camp)
+            await dbMysql.end()
+            camp.targetRules = rules.length !==0 && rules || null
         }
-
-        // console.log(campaignsRulesList)
-        // console.log(`\nget campaigns count: ${result.length}`)
-        return campaignsRulesList
+        return campaignsList
     } catch (e) {
         console.log(e)
     }
