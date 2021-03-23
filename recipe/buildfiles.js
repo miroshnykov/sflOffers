@@ -29,10 +29,10 @@ const createRecipeCampaign = async () => {
         let campaignData = await campaigns()
 
         console.log(`get campaign count:${campaignData.length}, from computer:${computerName} `)
-        if (campaignData.length === 0) {
-            console.log(`No campaigns data`)
-            return
-        }
+        // if (campaignData.length === 0) {
+        //     console.log(`No campaigns data`)
+        //     return
+        // }
         let filePath = config.recipe.folder + await generateFilePath('campaign')
         // console.log('filePath', filePath)
         let fileFolder = path.dirname(filePath);
@@ -138,9 +138,39 @@ const createRecipeOffers = async () => {
         let offerData = await offerInfo()
 
         if (offerData.length === 0) {
-            console.log(`No offers data`)
-            return
+            let offerDefault = []
+            offerDefault.push({
+                offerId: 0,
+                name: 'default',
+                advertiserId: 0,
+                advertiserName: 'default',
+                advertiserManagerId: 1,
+                verticalId: 1,
+                verticalName: 'default',
+                currencyId: 1,
+                status: 'public',
+                payin: 0,
+                payout: 0,
+                isCpmOptionEnabled: 1,
+                payoutPercent: 0,
+                landingPageId: null,
+                landingPageUrl: null,
+                sflOfferGeoId: 0,
+                geoRules: null,
+                geoOfferId: null,
+                conversionType: 'cpi',
+                customLpRules: null,
+                capDaySetup: null,
+                capDayCalculate: null,
+                capWeekSetup: null,
+                capWeekCalculate: null,
+                capMonthSetup: null,
+                capMonthCalculate: null,
+                capRedirect: null
+            })
+            offerData =  offerDefault
         }
+
 
         let offerFormat = []
         for (const offer of offerData) {

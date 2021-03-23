@@ -6,10 +6,12 @@ const offerInfo = async () => {
         let result = await dbMysql.query(` 
             SELECT o.id                            AS offerId, 
                    o.name                          AS name, 
-                   a.id              AS advertiserId,
-                   a.name            AS advertiserName,    
+                   a.id                            AS advertiserId,
+                   a.name                          AS advertiserName,    
                    o.advertiser_manager_id         AS advertiserManagerId,              
-                   o.verticals                     AS verticals, 
+                   v.id                            AS verticalId,
+                   v.name                          AS verticalName,
+                   o.currency_id                   AS currencyId,
                    o.status                        AS status, 
                    o.payin                         AS payin, 
                    o.payout                        AS payout, 
@@ -50,7 +52,9 @@ const offerInfo = async () => {
                    left join sfl_offer_custom_landing_pages lps
                           ON o.id = lps.sfl_offer_id  
                    left join sfl_advertisers a 
-                          ON a.id = o.sfl_advertiser_id                                                                    
+                          ON a.id = o.sfl_advertiser_id  
+                   left join sfl_vertical v 
+                          ON v.id = o.sfl_vertical_id                                                             
         `)
         await dbMysql.end()
         // console.log(`\nget offerInfo count: ${result.length}`)
@@ -97,6 +101,23 @@ const campaigns = async () => {
             WHERE  c.status = 'active'             
         `)
         await dbMysql.end()
+
+        if (campaignsList.length === 0) {
+            let campaignsListDefault = []
+
+            campaignsListDefault.push({
+                campaignId: 1,
+                name: 'DEFAULT',
+                offerId: 0,
+                affiliateId: 0,
+                payout: 0,
+                payoutPercent: null,
+                countRules: 0
+            })
+
+            return campaignsListDefault
+
+        }
 
         let campaignsRules = []
 
