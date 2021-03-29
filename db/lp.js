@@ -11,9 +11,11 @@ const getLps = async () => {
                 lp.weight               AS weight,
                 l.forced_landing_url    AS forcedLandingUrl,
                 l.static_url            AS staticUrl,
-                l.product_id            AS productId
-            FROM landing_pages l, sfl_segment_landing_page lp
-            WHERE l.id = lp.landing_pages_id
+                l.product_id            AS productId,
+                p.program_id            AS programId
+            FROM landing_pages l
+            INNER JOIN sfl_segment_landing_page lp ON l.id = lp.landing_pages_id
+            INNER JOIN ac_products as p ON p.id = l.product_id
             ORDER BY 1
         `)
         await dbMysql.end()
