@@ -10,7 +10,7 @@ const getAdvertisersProducts = async () => {
                    acp.advertiser_id AS advertiserId,
                    advs.name AS advertiserName,
                    acp.program_id AS advertiserProgramId,
-                   pgm.name AS programName,
+                   pgm.name AS advertiserProgramName,
                    forward_offer_parameters AS forwardOfferParameters,
                    tracking_code AS trackingCode
             FROM ac_products AS acp
