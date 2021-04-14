@@ -11,7 +11,7 @@ const {deleteFile} = require('../lib/zipOffer')
 const config = require('plain-config')()
 
 const os = require('os')
-const {getFileSize, formatByteSize} = require('../lib/helper')
+const {getFileSize, formatByteSize, parseFiles} = require('../lib/helper')
 
 const {getDataCache, setDataCache} = require('../lib/redis')
 const {
@@ -21,10 +21,11 @@ const metrics = require('../lib/metrics')
 
 const {blockedIp} = require('../db/blockedIp')
 
-const setFileSizeInfo = async () => {
 
-    if (config.env === 'development') return
-    console.log('\n ****  SET fileSizeInfo && blockedIp ****')
+const setFileSizeInfo = async () => {
+    let response = {}
+    console.log('setFileSizeInfo')
+    console.log('\n\n\n ****  SET fileSizeInfo && blockedIp ****')
     try {
         let files = await getLocalFiles(config.recipe.folder)
         const computerName = os.hostname()
@@ -34,61 +35,95 @@ const setFileSizeInfo = async () => {
             metrics.influxdb(500, `fileSizeAllRecipeNotExists`)
             return
         }
-        let file1 = files[0] // aff website
-        let file2 = files[1] //aff
-        let file3 = files[2]//camp
-        let file4 = files[3]//offer
-        let fileSizeOffer
-        let fileSizeCampaign
-        let fileSizeAffiliates
-        let fileSizeAffiliateWebsites
+        let filesInfo = parseFiles(files)
+        response.files = files
 
+        let affiliateWebsitesInfo = []
+        let affiliatesInfo = []
+        let campaignInfo = []
+        let offerInfo = []
+        for (const affiliateWebsitesFile of filesInfo.affiliateWebsitesData) {
+            let sizeAffiliateWebsitesFileSize = await getFileSize(affiliateWebsitesFile.file)
 
-        if (file1) {
-            fileSizeAffiliateWebsites = await getFileSize(file1) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeAffilaiteWebsitesNotExists-${computerName}`)
+            affiliateWebsitesInfo.push(
+                {
+                    index: affiliateWebsitesFile.index,
+                    file: affiliateWebsitesFile.file,
+                    size: sizeAffiliateWebsitesFileSize
+                })
         }
 
-        if (file2) {
-            fileSizeAffiliates = await getFileSize(file2) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeAffilaitesNotExists-${computerName}`)
+        for (const affiliatesFile of filesInfo.affiliatesData) {
+            let sizeAffiliates = await getFileSize(affiliatesFile.file)
+
+            affiliatesInfo.push(
+                {
+                    index: affiliatesFile.index,
+                    file: affiliatesFile.file,
+                    size: sizeAffiliates
+                })
         }
 
-
-        if (file3) {
-            fileSizeCampaign = await getFileSize(file3) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeCampaignsNotExists-${computerName}`)
+        for (const campaignFile of filesInfo.campaignData) {
+            let sizeCampaign = await getFileSize(campaignFile.file)
+            campaignInfo.push(
+                {
+                    index: campaignFile.index,
+                    file: campaignFile.file,
+                    size: sizeCampaign
+                })
         }
 
-
-        if (file4) {
-            fileSizeOffer = await getFileSize(file4) || 0
-        } else {
-            metrics.influxdb(500, `fileSizeOffersNotExists-${computerName}`)
+        for (const offerFile of filesInfo.offerData) {
+            let sizeOffer = await getFileSize(offerFile.file)
+            offerInfo.push(
+                {
+                    index: offerFile.index,
+                    file: offerFile.file,
+                    size: sizeOffer
+                })
         }
 
+        response.affiliateWebsitesInfo = affiliateWebsitesInfo
+        response.affiliatesInfo = affiliatesInfo
+        response.offerInfo = offerInfo
+        response.campaignInfo = campaignInfo
 
-        console.log(`File size for computerName:${computerName}  fileSizeAffiliates:${fileSizeAffiliates}, fileSizeCampaign:${fileSizeCampaign}, fileSizeOffer:${fileSizeOffer}, fileSizeAffiliateWebsites:${fileSizeAffiliateWebsites}`)
+        let fileSizeAffiliateWebsitesInfo
+        let fileSizeAffiliatesInfo
+        let fileSizeOfferInfo
+        let fileSizeCampaignInfo
 
-        // console.log('fileSizeOffer:', fileSizeOffer)
-        // console.log('fileSizeCampaign:', fileSizeCampaign)
+        fileSizeAffiliateWebsitesInfo = affiliateWebsitesInfo[0].size
+        fileSizeAffiliatesInfo = affiliatesInfo[0].size
+        fileSizeOfferInfo = offerInfo[0].size
+        fileSizeCampaignInfo = campaignInfo[0].size
+
+
         let fileSizeInfo = {}
-        if (fileSizeOffer) {
-            fileSizeInfo.offer = Number(fileSizeOffer)
+
+        if (!fileSizeAffiliateWebsitesInfo) {
+            metrics.influxdb(500, `fileSizeAffilaiteWebsitesNotExists-${computerName}`)
+        } else {
+            fileSizeInfo.affiliateWebsites = Number(fileSizeAffiliateWebsitesInfo)
         }
-        if (fileSizeCampaign) {
-            fileSizeInfo.campaign = Number(fileSizeCampaign)
+        if (!fileSizeAffiliatesInfo) {
+            metrics.influxdb(500, `fileSizeAffilaitesNotExists-${computerName}`)
+        } else {
+            fileSizeInfo.affiliates = Number(fileSizeAffiliatesInfo)
         }
-        if (fileSizeAffiliates) {
-            fileSizeInfo.affiliates = Number(fileSizeAffiliates)
+        if (!fileSizeOfferInfo) {
+            metrics.influxdb(500, `fileSizeOffersNotExists-${computerName}`)
+        } else {
+            fileSizeInfo.offer = Number(fileSizeOfferInfo)
+        }
+        if (!fileSizeCampaignInfo) {
+            metrics.influxdb(500, `fileSizeCampaignsNotExists-${computerName}`)
+        } else {
+            fileSizeInfo.campaign = Number(fileSizeCampaignInfo)
         }
 
-        if (fileSizeAffiliateWebsites) {
-            fileSizeInfo.affiliateWebsites = Number(fileSizeAffiliateWebsites)
-        }
+        console.log(`File size for computerName:${computerName}  fileSizeAffiliates:${fileSizeAffiliatesInfo}, fileSizeCampaign:${fileSizeCampaignInfo}, fileSizeOffer:${fileSizeOfferInfo}, fileSizeAffiliateWebsites:${fileSizeAffiliateWebsitesInfo}`)
 
         console.log(`Set fileSizeInfo:${JSON.stringify(fileSizeInfo)}`)
         await setDataCache(`fileSizeInfo`, fileSizeInfo)
@@ -105,56 +140,171 @@ const setFileSizeInfo = async () => {
 
 }
 
-const setRecipeFiles = async () => {
+// const setRecipeFiles = async () => {
+//     if (config.env === 'development') return
+//     const computerName = os.hostname()
+//     try {
+//         console.log(`**** setRecipeFiles **** `)
+//
+//         let files = await getLocalFiles(config.recipe.folder)
+//         console.log(`\nCreate files campaign and offer, computerName:${computerName}, files:${JSON.stringify(files)}, ConfigRecipeFolder:${JSON.stringify(config.recipe)}  `)
+//         if (files.length === 0) {
+//             console.log(`no files in folder:${JSON.stringify(config.recipe)} created `)
+//             await createRecipeCampaign()
+//             await createRecipeOffers()
+//             await createRecipeAffiliates()
+//             await createRecipeAffiliateWebsite()
+//             metrics.influxdb(200, `createRecipeFiles_${computerName}`)
+//             return
+//         }
+//
+//         let file1 = files[0]
+//         let file2 = files[1]
+//         let file3 = files[2]
+//         let file4 = files[3]
+//         if (file1) {
+//             await deleteFile(file1)
+//         }
+//         if (file2) {
+//             await deleteFile(file2)
+//         }
+//         if (file3) {
+//             await deleteFile(file3)
+//         }
+//
+//         if (file4) {
+//             await deleteFile(file4)
+//         }
+//         await createRecipeCampaign()
+//         await createRecipeOffers()
+//         await createRecipeAffiliates()
+//         await createRecipeAffiliateWebsite()
+//
+//         metrics.influxdb(200, `createRecipeFiles-${computerName}`)
+//     } catch (e) {
+//         metrics.influxdb(500, `createRecipeFileError-${computerName}`)
+//         console.log('create files campaign and offer error:', e)
+//     }
+//
+// }
+
+const setRecipeFilesCampaigns = async () => {
     if (config.env === 'development') return
     const computerName = os.hostname()
     try {
-        console.log(`**** setRecipeFiles **** `)
+        console.log(`**** setRecipeFilesCampaigns **** `)
 
         let files = await getLocalFiles(config.recipe.folder)
-        console.log(`\nCreate files campaign and offer, computerName:${computerName}, files:${JSON.stringify(files)}, ConfigRecipeFolder:${JSON.stringify(config.recipe)}  `)
-        if (files.length === 0) {
-            console.log(`no files in folder:${JSON.stringify(config.recipe)} created `)
-            await createRecipeCampaign()
-            await createRecipeOffers()
-            await createRecipeAffiliates()
-            await createRecipeAffiliateWebsite()
-            metrics.influxdb(200, `createRecipeFiles_${computerName}`)
-            return
+        let filesInfo = parseFiles(files)
+
+        let response = {}
+        response.deleted = []
+        for (const campaignData of filesInfo.campaignData) {
+            await deleteFile(campaignData.file)
+            response.deleted.push(campaignData.file)
         }
 
-        let file1 = files[0]
-        let file2 = files[1]
-        let file3 = files[2]
-        let file4 = files[3]
-        if (file1) {
-            await deleteFile(file1)
-        }
-        if (file2) {
-            await deleteFile(file2)
-        }
-        if (file3) {
-            await deleteFile(file3)
-        }
-
-        if (file4) {
-            await deleteFile(file4)
-        }
+        console.log(` **** Deleted campaignData files:${JSON.stringify(response)}`)
         await createRecipeCampaign()
-        await createRecipeOffers()
-        await createRecipeAffiliates()
-        await createRecipeAffiliateWebsite()
+        console.log(` **** Create files campaignData, computerName:${computerName}, files:${JSON.stringify(files)}, ConfigRecipeFolder:${JSON.stringify(config.recipe)}  `)
 
-        metrics.influxdb(200, `createRecipeFiles-${computerName}`)
+        metrics.influxdb(200, `createRecipeCampaigns-${computerName}`)
     } catch (e) {
-        metrics.influxdb(500, `createRecipeFileError-${computerName}`)
-        console.log('create files campaign and offer error:', e)
+        metrics.influxdb(500, `createRecipeCampaignsError-${computerName}`)
+        console.log('create files campaigns error:', e)
+    }
+
+}
+
+const setRecipeFilesOffers = async () => {
+    if (config.env === 'development') return
+    const computerName = os.hostname()
+    try {
+        console.log(`**** setRecipeFilesOffers **** `)
+
+        let files = await getLocalFiles(config.recipe.folder)
+        let filesInfo = parseFiles(files)
+
+        let response = {}
+        response.deleted = []
+        for (const offerData of filesInfo.offerData) {
+            await deleteFile(offerData.file)
+            response.deleted.push(offerData.file)
+        }
+
+        console.log(` **** Deleted offerData files:${JSON.stringify(response)}`)
+        await createRecipeOffers()
+        console.log(` **** Create files offerData, computerName:${computerName}, files:${JSON.stringify(files)}, ConfigRecipeFolder:${JSON.stringify(config.recipe)}  `)
+
+        metrics.influxdb(200, `createRecipeOffers--${computerName}`)
+    } catch (e) {
+        metrics.influxdb(500, `createRecipeOffersError-${computerName}`)
+        console.log('create files offers error:', e)
+    }
+
+}
+
+const setRecipeFilesAffiliates = async () => {
+    if (config.env === 'development') return
+    const computerName = os.hostname()
+    try {
+        console.log(`**** setRecipeFilesAffiliates **** `)
+
+        let files = await getLocalFiles(config.recipe.folder)
+        let filesInfo = parseFiles(files)
+
+        let response = {}
+        response.deleted = []
+        for (const affiliatesData of filesInfo.affiliatesData) {
+            await deleteFile(affiliatesData.file)
+            response.deleted.push(affiliatesData.file)
+        }
+
+        console.log(` **** Deleted affiliatesData files:${JSON.stringify(response)}`)
+        await createRecipeAffiliates()
+        console.log(` **** Create files affiliatesData, computerName:${computerName}, files:${JSON.stringify(files)}, ConfigRecipeFolder:${JSON.stringify(config.recipe)}  `)
+
+        metrics.influxdb(200, `createRecipeAffiliates--${computerName}`)
+    } catch (e) {
+        metrics.influxdb(500, `createRecipeAffiliatesError-${computerName}`)
+        console.log('create files affiliates error:', e)
+    }
+
+}
+
+const setRecipeFilesAffiliateWebsites = async () => {
+    if (config.env === 'development') return
+    const computerName = os.hostname()
+    try {
+        console.log(`**** setRecipeFilesAffiliateWebsites **** `)
+
+        let files = await getLocalFiles(config.recipe.folder)
+        let filesInfo = parseFiles(files)
+
+        let response = {}
+        response.deleted = []
+        for (const affiliateWebsitesData of filesInfo.affiliateWebsitesData) {
+            await deleteFile(affiliateWebsitesData.file)
+            response.deleted.push(affiliateWebsitesData.file)
+        }
+
+        console.log(` **** Deleted affiliateWebsitesData files:${JSON.stringify(response)}`)
+        await createRecipeAffiliateWebsite()
+        console.log(` **** Create files affiliateWebsitesData, computerName:${computerName}, files:${JSON.stringify(files)}, ConfigRecipeFolder:${JSON.stringify(config.recipe)}  `)
+
+        metrics.influxdb(200, `createRecipeAffiliateWebsite--${computerName}`)
+    } catch (e) {
+        metrics.influxdb(500, `createRecipeAffiliateWebsiteError-${computerName}`)
+        console.log('create files AffiliateWebsite error:', e)
     }
 
 }
 
 module.exports = {
     setFileSizeInfo,
-    setRecipeFiles,
+    setRecipeFilesCampaigns,
+    setRecipeFilesOffers,
+    setRecipeFilesAffiliates,
+    setRecipeFilesAffiliateWebsites
 }
 

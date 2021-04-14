@@ -6,7 +6,7 @@ const socketIO = require('socket.io')
 const app = express()
 const server = http.createServer(app);
 const io = socketIO(server)
-const {getFileSize, formatByteSize} = require('./lib/helper')
+const {checkFilesExists, parseFiles} = require('./lib/helper')
 const {
     getLocalFiles
 } = require('./lib/zipOffer')
@@ -15,13 +15,6 @@ const {getDataCache, setDataCache} = require('./lib/redis')
 
 const {blockedIp} = require('./db/blockedIp')
 
-const {
-    createRecipeCampaign,
-    createRecipeOffers,
-    createRecipeAffiliates,
-    createRecipeAffiliateWebsite,
-    // createRecipeSegments
-} = require('./recipe/buildfiles')
 const {deleteFile} = require('./lib/zipOffer')
 const {encrypt, decrypt} = require('./lib/encrypt')
 const {sqsProcess} = require('./sqs/sqs')
@@ -32,6 +25,13 @@ const LIMIT_CLIENTS = 60
 let clients = []
 const ss = require('socket.io-stream')
 const fs = require('fs')
+const {
+    setFileSizeInfo,
+    setRecipeFilesCampaigns,
+    setRecipeFilesOffers,
+    setRecipeFilesAffiliates,
+    setRecipeFilesAffiliateWebsites
+} = require(`./crons/recipes`)
 
 app.get('/health', (req, res, next) => {
     res.send('Ok')
@@ -89,86 +89,69 @@ app.get('/decodeUrl', async (req, res, next) => {
     }
 })
 
-// https://sfl-offers-stage1.surge.systems/forceCreateRecipe
-// https://sfl-offers.surge.systems/forceCreateRecipe
+app.get('/forceCreateRecipeCampaigns', async (req, res, next) => {
 
-app.get('/forceCreateRecipe', async (req, res, next) => {
+// https://sfl-offers-stage1.surge.systems/forceCreateRecipeCampaigns
+// https://sfl-offers.surge.systems/forceCreateRecipeCampaigns
+// http://localhost:8091/forceCreateRecipeCampaigns
+
     let response = {}
     try {
-
-        let files = await getLocalFiles(config.recipe.folder)
-        console.log('forceCreateRecipeFileDebug:', files)
-        console.log('forceCreateRecipeRecipe:', config.recipe)
-        response.files = files
-        response.configRecipe = config.recipe
-
-        if (files.length === 0) {
-            response.noFiles = `no files in folder:${JSON.stringify(config.recipe)} created `
-            await createRecipeCampaign()
-            await createRecipeOffers()
-            await createRecipeAffiliates()
-            await createRecipeAffiliateWebsite()
-
-            await waitFor(5000)
-
-            let files = await getLocalFiles(config.recipe.folder)
-            response.filesJustCreated = files
-
-            let size1AffWe = await getFileSize(files[0])// affWebsite
-            let size2Aff = await getFileSize(files[1]) // aff
-            let size3Camp = await getFileSize(files[2]) //campa
-            let size4Offer = await getFileSize(files[3]) // offer
-            // response.files1Size = formatByteSize(size1AffWe)
-            // response.files2Size = formatByteSize(size2Aff)
-            // response.files3Size = formatByteSize(size3Camp)
-            // response.files4Size = formatByteSize(size4Offer)
-            response.files1SizeAffWeb = size1AffWe
-            response.files2SizeAff = size2Aff
-            response.files3SizeCampaigns = size3Camp
-            response.files4SizeOffers = size4Offer
-
-            res.send(response)
-            return
-        }
-        let file1 = files[0]
-        let file2 = files[1]
-        let file3 = files[2]
-        let file4 = files[3]
-        if (file1) {
-            await deleteFile(file1)
-            response.file1Deleted = file1
-        }
-        if (file2) {
-            await deleteFile(file2)
-            response.file2Deleted = file2
-        }
-        if (file3) {
-            response.file3Deleted = file3
-            await deleteFile(file3)
-        }
-        if (file4) {
-            response.file4Deleted = file4
-            await deleteFile(file4)
-        }
-        await createRecipeCampaign()
-        await createRecipeOffers()
-        await createRecipeAffiliates()
-        await createRecipeAffiliateWebsite()
-        // await createRecipeSegments()
-
-
-        if (file1 && file2 && file3 && file4) {
-            response.files1 = `${files[0]}`
-            response.files2 = `${files[1]}`
-            response.files3 = `${files[2]}`
-            response.files4 = `${files[3]}`
-            response.done = 'recipe created'
-        } else {
-            response.done = 'files does not exists. but Recipe created first time '
-        }
-
+        let timeMs = 9000
+        setTimeout(setRecipeFilesCampaigns, timeMs)
+        response.run = `addedToQueSetRecipeFilesCampaigns-time-${timeMs}`
         res.send(response)
+    } catch (e) {
+        response.err = 'error recipe' + JSON.stringify(e)
+        res.send(response)
+    }
+})
 
+app.get('/forceCreateRecipeOffers', async (req, res, next) => {
+// https://sfl-offers-stage1.surge.systems/forceCreateRecipeOffers
+// https://sfl-offers.surge.systems/forceCreateRecipeOffers
+// http://localhost:8091/forceCreateRecipeOffers
+
+    let response = {}
+    try {
+        let timeMs = 9000
+        setTimeout(setRecipeFilesOffers, timeMs)
+        response.run = `addedToQueSetRecipeFilesOffers-time-${timeMs}`
+        res.send(response)
+    } catch (e) {
+        response.err = 'error recipe' + JSON.stringify(e)
+        res.send(response)
+    }
+})
+
+app.get('/forceCreateRecipeAffiliates', async (req, res, next) => {
+// https://sfl-offers-stage1.surge.systems/forceCreateRecipeAffiliates
+// https://sfl-offers.surge.systems/forceCreateRecipeAffiliates
+// http://localhost:8091/forceCreateRecipeAffiliates
+
+    let response = {}
+    try {
+        let timeMs = 9000
+        setTimeout(setRecipeFilesAffiliates, timeMs)
+        response.run = `addedToQueSetRecipeFilesAffiliates-time-${timeMs}`
+        res.send(response)
+    } catch (e) {
+        response.err = 'error recipe' + JSON.stringify(e)
+        res.send(response)
+    }
+})
+
+app.get('/forceCreateRecipeAffiliateWebsites', async (req, res, next) => {
+// https://sfl-offers-stage1.surge.systems/forceCreateRecipeAffiliateWebsites
+// https://sfl-offers.surge.systems/forceCreateRecipeAffiliateWebsites
+// http://localhost:8091/forceCreateRecipeAffiliateWebsites
+
+    let response = {}
+    try {
+        let timeMs = 9000
+        setTimeout(setRecipeFilesAffiliateWebsites, timeMs)
+        response.run = `addedToQueSetRecipeFilesAffiliatesWebsites-time-${timeMs}`
+        res.send(response)
     } catch (e) {
         response.err = 'error recipe' + JSON.stringify(e)
         res.send(response)
@@ -178,55 +161,9 @@ app.get('/forceCreateRecipe', async (req, res, next) => {
 
 // https://sfl-offers-stage1.surge.systems/files
 // https://sfl-offers.surge.systems/files
-
 app.get('/files', async (req, res, next) => {
-    let response = {}
-
-    try {
-        let files = await getLocalFiles(config.recipe.folder)
-
-
-        if (files.length === 0) {
-            response.noFiles = `no files in folder:${JSON.stringify(config.recipe)}`
-            res.send(response)
-            return
-        }
-
-        response.files = files
-        response.files1 = files[0]
-        response.files2 = files[1]
-        response.files3 = files[2]
-        response.files4 = files[3]
-        let size1AffWe = await getFileSize(files[0])// affWebsite
-        let size2Aff = await getFileSize(files[1]) // aff
-        let size3Camp = await getFileSize(files[2]) //campa
-        let size4Offer = await getFileSize(files[3]) // offer
-        // response.files1Size = formatByteSize(size1AffWe)
-        // response.files2Size = formatByteSize(size2Aff)
-        // response.files3Size = formatByteSize(size3Camp)
-        // response.files4Size = formatByteSize(size4Offer)
-        response.files1SizeAffWeb = size1AffWe
-        response.files2SizeAff = size2Aff
-        response.files3SizeCampaigns = size3Camp
-        response.files4SizeOffers = size4Offer
-        response.countsOfClients = clients.length || 0
-
-        const computerName = os.hostname()
-        // const cpus = os.cpus()
-        const freemem = os.freemem()
-        const userInfo = os.userInfo()
-        const release = os.release()
-        response.computerName = computerName || 0
-        // response.cpus = cpus || 0
-        response.freemem = freemem || 0
-        response.userInfo = userInfo || 0
-        response.release = release || 0
-
-        res.send(response)
-    } catch (e) {
-        response.err = 'error files' + JSON.stringify(e)
-        res.send(response)
-    }
+    let resp = await checkFilesExists()
+    res.send(resp)
 })
 
 app.get('/sqs', async (req, res, next) => {
@@ -252,10 +189,10 @@ app.get('/addcampaign', async (req, res, next) => {
     try {
         let query = req.query
         let offerId = query.offerId || 0
-        response.offerId  = offerId
-        if (offerId){
+        response.offerId = offerId
+        if (offerId) {
             let res = await addCampaign(offerId)
-            response.campaignInfo  = res
+            response.campaignInfo = res
             let obj = {
                 offerId: `${offerId}`,
                 campaignId: `${res.id}`
@@ -417,7 +354,6 @@ app.get('/fileSizeInfo', async (req, res, next) => {
         res.send(response)
     }
 })
-
 
 
 io.on('connection', async (socket) => {
@@ -605,19 +541,20 @@ io.on('connection', async (socket) => {
         try {
             let files = await getLocalFiles(config.recipe.folder)
 
-            // console.log('FILE:',files)
-            let file = files[0]
-            if (!file) {
-                console.log(`no files in folder:${config.recipe.folder}`)
+            let filesInfo = parseFiles(files)
+            if (filesInfo.affiliateWebsitesData.length === 0) {
+                console.log(`no file affiliateWebsitesData in folder:${config.recipe.folder}`)
                 return
             }
+            let affiliateWebsitesFile = filesInfo.affiliateWebsitesData[0].file
+
             let stream = ss.createStream();
             stream.on('end', () => {
-                console.log(`file:${file} sent to soket ID:${socket.id}`);
+                console.log(`file:${affiliateWebsitesFile} sent to soket ID:${socket.id}`);
                 metrics.influxdb(200, `sendFileAffiliateWebsites`)
             });
             ss(socket).emit('sendingAffiliateWebsites', stream);
-            fs.createReadStream(file).pipe(stream);
+            fs.createReadStream(affiliateWebsitesFile).pipe(stream);
 
         } catch (e) {
             console.log('sendFileAffiliatesError:', e)
@@ -631,18 +568,21 @@ io.on('connection', async (socket) => {
         try {
             let files = await getLocalFiles(config.recipe.folder)
 
-            let file = files[1]
-            if (!file) {
-                console.log(`no files in folder:${config.recipe.folder}`)
+
+            let filesInfo = parseFiles(files)
+            if (filesInfo.affiliatesData.length === 0) {
+                console.log(`no file affiliatesData in folder:${config.recipe.folder}`)
                 return
             }
+            let affiliatesFile = filesInfo.affiliatesData[0].file
+
             let stream = ss.createStream();
             stream.on('end', () => {
-                console.log(`file:${file} sent to soket ID:${socket.id}`);
+                console.log(`file:${affiliatesFile} sent to soket ID:${socket.id}`);
                 metrics.influxdb(200, `sendFileAffiliates`)
             });
             ss(socket).emit('sendingAffiliates', stream);
-            fs.createReadStream(file).pipe(stream);
+            fs.createReadStream(affiliatesFile).pipe(stream);
 
         } catch (e) {
             console.log('sendFileAffiliatesError:', e)
@@ -658,21 +598,20 @@ io.on('connection', async (socket) => {
             metrics.sendMetricsCountOfClients(clients.length)
             let files = await getLocalFiles(config.recipe.folder)
 
-            // console.log('files:', files)
-            let file = files[2]
-
-            if (!file) {
-                console.log(`no files in folder:${config.recipe.folder}`)
+            let filesInfo = parseFiles(files)
+            if (filesInfo.campaignData.length === 0) {
+                console.log(`no file campaignData in folder:${config.recipe.folder}`)
                 return
             }
+            let campaignDataFile = filesInfo.campaignData[0].file
 
             let stream = ss.createStream();
             stream.on('end', () => {
-                console.log(`file:${file} sent to soket ID:${socket.id}`);
+                console.log(`file:${campaignDataFile} sent to soket ID:${socket.id}`);
                 metrics.influxdb(200, `sendFileCampaign`)
             });
             ss(socket).emit('sendingCampaigns', stream);
-            fs.createReadStream(file).pipe(stream);
+            fs.createReadStream(campaignDataFile).pipe(stream);
         } catch (e) {
             console.log('sendFileCampaignError:', e)
             metrics.influxdb(500, `sendFileCampaignError`)
@@ -685,20 +624,20 @@ io.on('connection', async (socket) => {
         try {
             let files = await getLocalFiles(config.recipe.folder)
 
-
-            let file = files[3]
-            // console.log('sendFileOffer file:', file)
-            if (!file) {
-                console.log(`no files in folder:${config.recipe.folder}`)
+            let filesInfo = parseFiles(files)
+            if (filesInfo.offerData.length === 0) {
+                console.log(`no file offerData in folder:${config.recipe.folder}`)
                 return
             }
+            let offerDataFile = filesInfo.offerData[0].file
+
             let stream = ss.createStream();
             stream.on('end', () => {
-                console.log(`file:${file} sent to soket ID:${socket.id}`);
+                console.log(`file:${offerDataFile} sent to soket ID:${socket.id}`);
                 metrics.influxdb(200, `sendFileOffer`)
             });
             ss(socket).emit('sendingOffers', stream);
-            fs.createReadStream(file).pipe(stream);
+            fs.createReadStream(offerDataFile).pipe(stream);
 
         } catch (e) {
             console.log('sendFileOfferError:', e)
@@ -755,16 +694,17 @@ server.listen({port: config.port}, () => {
     console.log(`\n🚀\x1b[35m Server ready at http://localhost:${config.port},  Using node ${process.version}, env:${config.env} \x1b[0m \n`)
 })
 
-const {
-    setFileSizeInfo,
-    setRecipeFiles,
-} = require(`./crons/recipes`)
+setInterval(setFileSizeInfo, 600000) //  600000 -> 10 min
+setInterval(setRecipeFilesCampaigns, 1800000) // 1800000 -> 30 min
+setInterval(setRecipeFilesOffers, 2400000) // 2400000 -> 40 min
+setInterval(setRecipeFilesAffiliates, 3600000) // 3600000 -> 60 min
+setInterval(setRecipeFilesAffiliateWebsites, 5400000) // 5400000 -> 90 min
 
-setInterval(setFileSizeInfo, 900000) //  900000 -> 6.5 min
-setInterval(setRecipeFiles, 300000) // 300000 -> 5 min
-
-setTimeout(setRecipeFiles, 10000)
-setTimeout(setFileSizeInfo, 20000)
+setTimeout(setFileSizeInfo, 50000)
+setTimeout(setRecipeFilesCampaigns, 10000)
+setTimeout(setRecipeFilesOffers, 20000)
+setTimeout(setRecipeFilesAffiliates, 30000)
+setTimeout(setRecipeFilesAffiliateWebsites, 40000)
 
 const {
     setSegmentsToRedis,
