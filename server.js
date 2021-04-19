@@ -207,7 +207,7 @@ app.get('/addcampaign', async (req, res, next) => {
 
         res.send(response)
     } catch (e) {
-        response.err = 'error create Campaign' + JSON.stringify(e)
+        response.err = `error create Campaign:${e.toString()}`
         res.send(response)
     }
 })
