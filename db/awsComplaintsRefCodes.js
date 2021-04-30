@@ -4,18 +4,27 @@ const config = require('plain-config')()
 const awsComplaintsRefCodes = async () => {
 
     try {
-        let result = await dbMysql.query(` 
-            SELECT id
-            FROM ref_codes r
-            WHERE r.campaign_id IN
-                (SELECT CAST(SUBSTR(d.value, 8, 6) AS SIGNED) campaignId
+        let awsCampaignsSegment = await dbMysql.query(` 
+            SELECT d.value 
                  FROM sfl_segment_dimension d
-                 WHERE d.sfl_segment_id IN (${config.awsComplaintsSegmentId}))
+                 WHERE d.sfl_segment_id IN (${config.awsComplaintsSegmentId})
         `)
 
-        let listIds = result.map(item => item.id)
+        let campaignsIds = awsCampaignsSegment.map(item => item.value.substr(item.value.indexOf('/') + 1, item.value.length))
+
+        let strIn = ``
+        for (const campaign of campaignsIds) {
+            strIn += `${campaign},`
+        }
+        let strIn_ = strIn.slice(0, -1)
+        console.log(strIn)
+
+        let refCodesAwsBlock = await dbMysql.query(` 
+            SELECT id FROM ref_codes r WHERE r.campaign_id IN (${strIn_})
+        `)
+        let listRedcodes = refCodesAwsBlock.map(item => item.id)
         await dbMysql.end()
-        return listIds
+        return listRedcodes
     } catch (e) {
         console.log(e)
     }

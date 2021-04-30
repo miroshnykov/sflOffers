@@ -166,9 +166,11 @@ app.get('/files', async (req, res, next) => {
     res.send(resp)
 })
 
-
+const {awsComplaintsRefCodes} = require('./db/awsComplaintsRefCodes')
 app.get('/aws', async (req, res, next) => {
     let awsComplaintsRefCodes = await getDataCache('awsComplaintsRefCodes') || []
+
+    // let awsComplaintsRefCodesInfo = await awsComplaintsRefCodes()
     res.send(awsComplaintsRefCodes)
 })
 
