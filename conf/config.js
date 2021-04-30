@@ -45,5 +45,6 @@ config.influxdb = {
 }
 
 config.hyunaRandomSites = 'http://admin-wt.jomediainc.com/api/getRandomSites.php'
+config.awsComplaintsSegmentId = 46
 
 module.exports = config;
