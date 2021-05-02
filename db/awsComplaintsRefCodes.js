@@ -3,6 +3,15 @@ const config = require('plain-config')()
 
 const awsComplaintsRefCodes = async () => {
 
+
+// `
+// SELECT r.id
+// FROM ref_codes r
+// WHERE r.campaign_id IN
+//     (SELECT CAST(SUBSTR(d.value, POSITION('/' IN VALUE)+1, 6) AS SIGNED) AS campaignId
+//      FROM sfl_segment_dimension d
+//      WHERE d.sfl_segment_id IN ('46') )
+// `
     try {
         let awsCampaignsSegment = await dbMysql.query(` 
             SELECT d.value 

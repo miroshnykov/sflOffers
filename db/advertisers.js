@@ -3,7 +3,7 @@ let dbMysql = require('./mysqlAdcenterDb').get()
 const getAdvertisersProducts = async () => {
 
     try {
-        console.time('getAdvertisersProducts')
+        // console.time('getAdvertisersProducts')
         let result = await dbMysql.query(` 
             SELECT acp.id AS advertiserProductId,
                    acp.name AS advertiserProductName,
@@ -21,7 +21,7 @@ const getAdvertisersProducts = async () => {
         await dbMysql.end()
 
         console.log(` *** AdvertisersProducts count:${result.length}`)
-        console.timeEnd('getAdvertisersProducts')
+        // console.timeEnd('getAdvertisersProducts')
         return result
     } catch (e) {
         console.log(e)

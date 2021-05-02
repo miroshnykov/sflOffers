@@ -378,7 +378,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(fileSizeInfoCache) === JSON.stringify(fileSizeInfo)) {
-                console.log(` --- FileSize the same  don't need to send   { ${socket.id} } `)
+                //console.log(` --- FileSize the same  don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -401,7 +401,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(blockedIpCache) === JSON.stringify(blockedIp)) {
-                console.log(` --- blockedIpCache the same  don't need to send   { ${socket.id} } `)
+                // console.log(` --- blockedIpCache the same  don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -424,7 +424,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(segmentsInfoCache) === JSON.stringify(segmentsInfo_)) {
-                console.log(` --- segmentsInfo_ the same don't need to send   { ${socket.id} } `)
+                // console.log(` --- segmentsInfo_ the same don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -447,7 +447,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(lpInfoCache) === JSON.stringify(lpInfo_)) {
-                console.log(` --- lpInfoCache the same don't need to send   { ${socket.id} } `)
+                // console.log(` --- lpInfoCache the same don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -470,7 +470,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(randomSitesCache) === JSON.stringify(randomSites_)) {
-                console.log(` --- randomSitesCache the same don't need to send   { ${socket.id} } `)
+                // console.log(` --- randomSitesCache the same don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -493,7 +493,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(advertisersInfoCache) === JSON.stringify(advertisersInfo_)) {
-                console.log(` --- advertisersInfo_ the same don't need to send   { ${socket.id} } `)
+                //console.log(` --- advertisersInfo_ the same don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -516,7 +516,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(targetingInfoCache) === JSON.stringify(targetingInfo)) {
-                console.log(` --- targetingInfo the same don't need to send   { ${socket.id} } `)
+                //console.log(` --- targetingInfo the same don't need to send   { ${socket.id} } `)
                 return
             }
 
