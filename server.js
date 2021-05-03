@@ -415,6 +415,30 @@ io.on('connection', async (socket) => {
 
     })
 
+
+    socket.on('awsComplaintsRefCodes', async (awsComplaintsRefCode) => {
+        try {
+            let awsComplaintsRefCodesCache = await getDataCache('awsComplaintsRefCodes') || []
+
+            if (awsComplaintsRefCodesCache.length === 0) {
+                console.log('awsComplaintsRefCodes  is NULL')
+                return
+            }
+            if (JSON.stringify(awsComplaintsRefCodesCache) === JSON.stringify(awsComplaintsRefCode)) {
+                // console.log(` --- awsComplaintsRefCodesCache the same  don't need to send   { ${socket.id} } `)
+                return
+            }
+
+            console.log(` **** awsComplaintsRefCodesCache is different, send to socket id { ${socket.id} }, fileSizeInfoCache:{ ${JSON.stringify(awsComplaintsRefCodesCache)} }`)
+            io.to(socket.id).emit("awsComplaintsRefCodes", awsComplaintsRefCodesCache)
+
+        } catch (e) {
+            console.log('awsComplaintsRefCodeError:', e)
+            metrics.influxdb(500, `awsComplaintsRefCodeError`)
+        }
+
+    })
+
     socket.on('segmentsInfo', async (segmentsInfo_) => {
         try {
             let segmentsInfoCache = await getDataCache('segmentsInfo') || []
