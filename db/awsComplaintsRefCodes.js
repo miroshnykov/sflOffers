@@ -31,9 +31,9 @@ const awsComplaintsRefCodes = async () => {
         let refCodesAwsBlock = await dbMysql.query(` 
             SELECT id FROM ref_codes r WHERE r.campaign_id IN (${strIn_})
         `)
-        let listRedcodes = refCodesAwsBlock.map(item => item.id)
+        let listRefCodes = refCodesAwsBlock.map(item => item.id)
         await dbMysql.end()
-        return listRedcodes
+        return listRefCodes
     } catch (e) {
         console.log(e)
     }
