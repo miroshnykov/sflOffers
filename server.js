@@ -166,6 +166,14 @@ app.get('/files', async (req, res, next) => {
     res.send(resp)
 })
 
+const {awsComplaintsRefCodes} = require('./db/awsComplaintsRefCodes')
+app.get('/aws', async (req, res, next) => {
+    let awsComplaintsRefCodes = await getDataCache('awsComplaintsRefCodes') || []
+
+    // let awsComplaintsRefCodesInfo = await awsComplaintsRefCodes()
+    res.send(awsComplaintsRefCodes)
+})
+
 app.get('/sqs', async (req, res, next) => {
     let response = {}
     console.log('get sqs ')
@@ -181,6 +189,7 @@ app.get('/sqs', async (req, res, next) => {
 const {addCampaign} = require('./db/campaigns')
 
 // http://localhost:8091/addcampaign?offerId=28
+// https://sfl-offers-stage1.surge.systems/addcampaign?offerId=33425
 // https://sfl-offers.surge.systems/addcampaign?offerId=28
 
 app.get('/addcampaign', async (req, res, next) => {
@@ -207,7 +216,7 @@ app.get('/addcampaign', async (req, res, next) => {
 
         res.send(response)
     } catch (e) {
-        response.err = 'error create Campaign' + JSON.stringify(e)
+        response.err = `error create Campaign:${e.toString()}`
         res.send(response)
     }
 })
@@ -369,7 +378,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(fileSizeInfoCache) === JSON.stringify(fileSizeInfo)) {
-                console.log(` --- FileSize the same  don't need to send   { ${socket.id} } `)
+                //console.log(` --- FileSize the same  don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -392,7 +401,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(blockedIpCache) === JSON.stringify(blockedIp)) {
-                console.log(` --- blockedIpCache the same  don't need to send   { ${socket.id} } `)
+                // console.log(` --- blockedIpCache the same  don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -415,7 +424,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(segmentsInfoCache) === JSON.stringify(segmentsInfo_)) {
-                console.log(` --- segmentsInfo_ the same don't need to send   { ${socket.id} } `)
+                // console.log(` --- segmentsInfo_ the same don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -438,7 +447,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(lpInfoCache) === JSON.stringify(lpInfo_)) {
-                console.log(` --- lpInfoCache the same don't need to send   { ${socket.id} } `)
+                // console.log(` --- lpInfoCache the same don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -461,7 +470,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(randomSitesCache) === JSON.stringify(randomSites_)) {
-                console.log(` --- randomSitesCache the same don't need to send   { ${socket.id} } `)
+                // console.log(` --- randomSitesCache the same don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -484,7 +493,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(advertisersInfoCache) === JSON.stringify(advertisersInfo_)) {
-                console.log(` --- advertisersInfo_ the same don't need to send   { ${socket.id} } `)
+                //console.log(` --- advertisersInfo_ the same don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -507,7 +516,7 @@ io.on('connection', async (socket) => {
                 return
             }
             if (JSON.stringify(targetingInfoCache) === JSON.stringify(targetingInfo)) {
-                console.log(` --- targetingInfo the same don't need to send   { ${socket.id} } `)
+                //console.log(` --- targetingInfo the same don't need to send   { ${socket.id} } `)
                 return
             }
 
@@ -719,7 +728,7 @@ setInterval(setLpToRedis, 246000) //  246000 -> 4.1 min
 setTimeout(setLpToRedis, 9000)
 
 setInterval(setAdvertisersToRedis, 252000) //  252000 -> 4.2 min
-setTimeout(setAdvertisersToRedis, 9000)
+setTimeout(setAdvertisersToRedis, 50000) // 50000 -> 50 sec
 
 
 const {
@@ -727,14 +736,21 @@ const {
 } = require(`./crons/targeting`)
 
 setInterval(setTargetingRedis, 600000) //  600000 -> 10 min
-setTimeout(setTargetingRedis, 9000)
+setTimeout(setTargetingRedis, 50000) // 50000 -> 50 sec
 
 const {
     setRandomSitesToRedis
 } = require(`./crons/randomSites`)
 
 setInterval(setRandomSitesToRedis, 900000) //  900000 -> 15 min
-setTimeout(setRandomSitesToRedis, 9000) // 45000 -> 45 sec
+setTimeout(setRandomSitesToRedis, 45000) // 45000 -> 45 sec
 
+
+const {
+    setAwsComplaintsRefCodesToRedis
+} = require(`./crons/awsComplaintsRefCodes`)
+
+setInterval(setAwsComplaintsRefCodesToRedis, 900000) //  900000 -> 15 min
+setTimeout(setAwsComplaintsRefCodesToRedis, 45000) // 45000 -> 45 sec
 
 const waitFor = delay => new Promise(resolve => setTimeout(resolve, delay))

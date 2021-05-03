@@ -87,6 +87,7 @@ const getOffer = async (id) => {
 const campaigns = async () => {
 
     try {
+        console.time('Campaign')
         let campaignsList = await dbMysql.query(` 
             SELECT c.id                                    AS campaignId, 
                    c.name                                  AS name, 
@@ -94,14 +95,15 @@ const campaigns = async () => {
                    c.affiliate_id                          AS affiliateId, 
                    c.payout                                AS payout,
                    c.payout_percent                        AS payoutPercent,
-                   (SELECT Count(*) 
+                   (SELECT r.rules
                     FROM   sfl_offer_campaign_rules r 
-                    WHERE  r.sfl_offer_campaign_id = c.id) AS countRules 
+                    WHERE  r.sfl_offer_campaign_id = c.id ORDER BY r.id ASC LIMIT 1) AS targetRules
             FROM   sfl_offer_campaigns c 
-            WHERE  c.status = 'active'             
+            WHERE  c.status = 'active'              
         `)
         await dbMysql.end()
 
+        console.log(`\ncampaigns count: ${campaignsList.length}`)
         if (campaignsList.length === 0) {
             let campaignsListDefault = []
 
@@ -112,27 +114,29 @@ const campaigns = async () => {
                 affiliateId: 0,
                 payout: 0,
                 payoutPercent: null,
-                countRules: 0
+                targetRules: null
             })
 
             return campaignsListDefault
 
         }
 
-        for (const camp of campaignsList) {
-            let rules = await dbMysql.query(`
-            SELECT r.rules AS rules, 
-                   r.position AS position, 
-                   r.sfl_offer_campaign_id AS campaignId 
-            FROM   sfl_offer_campaign_rules r 
-            WHERE  r.status = 'active' 
-                   AND r.sfl_offer_campaign_id = ${camp.campaignId} 
-            ORDER BY r.sfl_offer_campaign_id,r.position ASC 
+        // for (const camp of campaignsList) {
+        //     let rules = await dbMysql.query(`
+        //     SELECT r.rules AS rules,
+        //            r.position AS position,
+        //            r.sfl_offer_campaign_id AS campaignId
+        //     FROM   sfl_offer_campaign_rules r
+        //     WHERE  r.status = 'active'
+        //            AND r.sfl_offer_campaign_id = ${camp.campaignId}
+        //     ORDER BY r.sfl_offer_campaign_id,r.position ASC
+        //
+        // `)
+        //     await dbMysql.end()
+        //     camp.targetRules = rules.length !==0 && rules || null
+        // }
 
-        `)
-            await dbMysql.end()
-            camp.targetRules = rules.length !==0 && rules || null
-        }
+        console.timeEnd('Campaign')
         return campaignsList
     } catch (e) {
         console.log(e)
