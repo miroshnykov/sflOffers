@@ -428,7 +428,7 @@ io.on('connection', async (socket) => {
                 return
             }
 
-            console.log(`\n\n **** SegmentsInfo_ is different, send to socket id { ${socket.id} }, segmentsInfoCache:{ ${JSON.stringify(segmentsInfoCache)} }`)
+            console.log(`\n\n **** SegmentsInfo_ is different, send to socket id { ${socket.id} }`)
             io.to(socket.id).emit("segmentsInfo", segmentsInfoCache)
 
         } catch (e) {
