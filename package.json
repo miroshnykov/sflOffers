@@ -4,9 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "prod": "node server.js --conf=/run/secrets/sfl-offers-prod.js",
-    "stage1": "NODE_ENV=staging node server.js --conf=/run/secrets/sfl-offers-stage1.js",
-    "stage2": "NODE_ENV=staging node server.js --conf=/run/secrets/sfl-offers-stage2.js"
+    "prod": "node server.js --conf=/run/secrets/sfl-offers.js",
+    "stage1": "NODE_ENV=staging node server.js --conf=/run/secrets/sfl-offers.js",
+    "stage2": "NODE_ENV=staging node server.js --conf=/run/secrets/sfl-offers.js"
   },
   "author": "",
   "license": "ISC",
