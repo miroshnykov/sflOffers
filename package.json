@@ -13,6 +13,7 @@
   "dependencies": {
     "@dropb/diskinfo": "^2.0.0",
     "JSONStream": "^1.3.5",
+    "am-components-backend": "git+https://components-backend:V26sxoPELSNTcvL1JaQK@gitlab.com/ActionMediaInc/adcenter/am-components-backend.git",
     "async-redis": "^1.1.7",
     "atob": "^2.1.2",
     "aws-sdk": "^2.791.0",
