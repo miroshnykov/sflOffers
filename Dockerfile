@@ -19,6 +19,8 @@ RUN apt-get install \
 RUN curl --silent --location https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get install --yes nodejs
 
+RUN git config --global http.sslVerify "false"
+
 RUN mkdir /tmp/recipe
 RUN chmod 755 /tmp
 
