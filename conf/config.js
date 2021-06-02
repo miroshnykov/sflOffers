@@ -12,6 +12,14 @@ config.mysql = {
     database: ''
 }
 
+config.mysqlTraffc = {
+    host: '',
+    user: '',
+    port: 3306,
+    password: '',
+    database: ''
+}
+
 config.encryption = {
     key: '',
     iv_length: 0
