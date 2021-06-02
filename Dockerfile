@@ -16,10 +16,13 @@ RUN apt-get install \
     python -y \
     redis-server
 
+RUN apt-get install --yes git
+
+RUN git config --global http.sslVerify "false"
+
 RUN curl --silent --location https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get install --yes nodejs
 
-RUN git config --global http.sslVerify "false"
 
 RUN mkdir /tmp/recipe
 RUN chmod 755 /tmp
