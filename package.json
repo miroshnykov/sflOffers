@@ -4,15 +4,16 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "prod": "node server.js --conf=/run/secrets/sfl-offers-prod.js",
-    "stage1": "NODE_ENV=staging node server.js --conf=/run/secrets/sfl-offers-stage1.js",
-    "stage2": "NODE_ENV=staging node server.js --conf=/run/secrets/sfl-offers-stage2.js"
+    "prod": "node server.js --conf=/run/secrets/sfl-offers.js",
+    "stage1": "NODE_ENV=staging node server.js --conf=/run/secrets/sfl-offers.js",
+    "stage2": "NODE_ENV=staging node server.js --conf=/run/secrets/sfl-offers.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@dropb/diskinfo": "^2.0.0",
     "JSONStream": "^1.3.5",
+    "am-components-backend": "git+https://components-backend:V26sxoPELSNTcvL1JaQK@gitlab.com/ActionMediaInc/adcenter/am-components-backend.git",
     "async-redis": "^1.1.7",
     "atob": "^2.1.2",
     "aws-sdk": "^2.791.0",

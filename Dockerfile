@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 ARG node_version=12.16.1
 
 
@@ -16,8 +16,13 @@ RUN apt-get install \
     python -y \
     redis-server
 
+RUN apt-get install --yes git
+
+RUN git config --global http.sslVerify "false"
+
 RUN curl --silent --location https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get install --yes nodejs
+
 
 RUN mkdir /tmp/recipe
 RUN chmod 755 /tmp
