@@ -1,4 +1,4 @@
-let dbMysql = require('./mysqlAdcenterDb').get()
+let dbMysql = require('./mysqlTrafficDb').get()
 
 const offerInfo = async () => {
 

@@ -20,14 +20,14 @@ const {
 const metrics = require('../lib/metrics')
 
 const {blockedIp} = require('../db/blockedIp')
-
+const {RecipeFiles} = require("am-components-backend")
 
 const setFileSizeInfo = async () => {
     let response = {}
     console.log('setFileSizeInfo')
     console.log('\n\n\n ****  SET fileSizeInfo && blockedIp ****')
     try {
-        let files = await getLocalFiles(config.recipe.folder)
+        let files = await RecipeFiles.getLocalFiles(config.recipe.folder)
         const computerName = os.hostname()
         console.log(`getLocalFilesDebug for computerName:${computerName}, files:${JSON.stringify(files)}`)
         if (files.length === 0) {
@@ -35,7 +35,7 @@ const setFileSizeInfo = async () => {
             metrics.influxdb(500, `fileSizeAllRecipeNotExists`)
             return
         }
-        let filesInfo = parseFiles(files)
+        let filesInfo = RecipeFiles.formatRecipeFiles(files)
         response.files = files
 
         let affiliateWebsitesInfo = []
@@ -194,14 +194,16 @@ const setRecipeFilesCampaigns = async () => {
     try {
         console.log(`**** setRecipeFilesCampaigns **** `)
 
-        let files = await getLocalFiles(config.recipe.folder)
-        let filesInfo = parseFiles(files)
+        let files = await RecipeFiles.getLocalFiles(config.recipe.folder)
+        let filesInfo = RecipeFiles.formatRecipeFiles(files)
 
         let response = {}
         response.deleted = []
-        for (const campaignData of filesInfo.campaignData) {
-            await deleteFile(campaignData.file)
-            response.deleted.push(campaignData.file)
+        if (filesInfo['campaignData']){
+            for (const campaignData of filesInfo['campaignData']) {
+                await deleteFile(campaignData.file)
+                response.deleted.push(campaignData.file)
+            }
         }
 
         console.log(` **** Deleted campaignData files:${JSON.stringify(response)}`)
@@ -222,14 +224,16 @@ const setRecipeFilesOffers = async () => {
     try {
         console.log(`**** setRecipeFilesOffers **** `)
 
-        let files = await getLocalFiles(config.recipe.folder)
-        let filesInfo = parseFiles(files)
+        let files = await RecipeFiles.getLocalFiles(config.recipe.folder)
+        let filesInfo = RecipeFiles.formatRecipeFiles(files)
 
         let response = {}
         response.deleted = []
-        for (const offerData of filesInfo.offerData) {
-            await deleteFile(offerData.file)
-            response.deleted.push(offerData.file)
+        if (filesInfo['offerData']){
+            for (const offerData of filesInfo.offerData) {
+                await deleteFile(offerData.file)
+                response.deleted.push(offerData.file)
+            }
         }
 
         console.log(` **** Deleted offerData files:${JSON.stringify(response)}`)
@@ -250,14 +254,16 @@ const setRecipeFilesAffiliates = async () => {
     try {
         console.log(`**** setRecipeFilesAffiliates **** `)
 
-        let files = await getLocalFiles(config.recipe.folder)
-        let filesInfo = parseFiles(files)
+        let files = await RecipeFiles.getLocalFiles(config.recipe.folder)
+        let filesInfo = RecipeFiles.formatRecipeFiles(files)
 
         let response = {}
         response.deleted = []
-        for (const affiliatesData of filesInfo.affiliatesData) {
-            await deleteFile(affiliatesData.file)
-            response.deleted.push(affiliatesData.file)
+        if (filesInfo['affiliatesData']){
+            for (const affiliatesData of filesInfo.affiliatesData) {
+                await deleteFile(affiliatesData.file)
+                response.deleted.push(affiliatesData.file)
+            }
         }
 
         console.log(` **** Deleted affiliatesData files:${JSON.stringify(response)}`)
@@ -278,14 +284,16 @@ const setRecipeFilesAffiliateWebsites = async () => {
     try {
         console.log(`**** setRecipeFilesAffiliateWebsites **** `)
 
-        let files = await getLocalFiles(config.recipe.folder)
-        let filesInfo = parseFiles(files)
+        let files = await RecipeFiles.getLocalFiles(config.recipe.folder)
+        let filesInfo = RecipeFiles.formatRecipeFiles(files)
 
         let response = {}
         response.deleted = []
-        for (const affiliateWebsitesData of filesInfo.affiliateWebsitesData) {
-            await deleteFile(affiliateWebsitesData.file)
-            response.deleted.push(affiliateWebsitesData.file)
+        if (filesInfo['affiliateWebsitesData']){
+            for (const affiliateWebsitesData of filesInfo.affiliateWebsitesData) {
+                await deleteFile(affiliateWebsitesData.file)
+                response.deleted.push(affiliateWebsitesData.file)
+            }
         }
 
         console.log(` **** Deleted affiliateWebsitesData files:${JSON.stringify(response)}`)

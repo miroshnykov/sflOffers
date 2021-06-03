@@ -11,6 +11,8 @@ const {
     getLocalFiles
 } = require('./lib/zipOffer')
 
+const {RecipeFiles} = require("am-components-backend")
+
 const {getDataCache, setDataCache} = require('./lib/redis')
 
 const {blockedIp} = require('./db/blockedIp')
@@ -364,6 +366,19 @@ app.get('/fileSizeInfo', async (req, res, next) => {
     }
 })
 
+app.get('/recipeFiles', async (req, res, next) => {
+
+    let response = {}
+    try {
+        let files = await RecipeFiles.getLocalFiles(config.recipe.folder)
+        let filesInfo = RecipeFiles.formatRecipeFiles(files)
+        res.send(filesInfo)
+    } catch (e) {
+        response.err = 'error fileSizeInfoCache' + JSON.stringify(e)
+        console.log(e)
+        res.send(response)
+    }
+})
 
 io.on('connection', async (socket) => {
 
@@ -572,9 +587,9 @@ io.on('connection', async (socket) => {
     socket.on('sendFileAffiliateWebsites', async () => {
 
         try {
-            let files = await getLocalFiles(config.recipe.folder)
+            let files = await RecipeFiles.getLocalFiles(config.recipe.folder)
+            let filesInfo = RecipeFiles.formatRecipeFiles(files)
 
-            let filesInfo = parseFiles(files)
             if (filesInfo.affiliateWebsitesData.length === 0) {
                 console.log(`no file affiliateWebsitesData in folder:${config.recipe.folder}`)
                 return
@@ -599,10 +614,10 @@ io.on('connection', async (socket) => {
     socket.on('sendFileAffiliates', async () => {
 
         try {
-            let files = await getLocalFiles(config.recipe.folder)
 
+            let files = await RecipeFiles.getLocalFiles(config.recipe.folder)
+            let filesInfo = RecipeFiles.formatRecipeFiles(files)
 
-            let filesInfo = parseFiles(files)
             if (filesInfo.affiliatesData.length === 0) {
                 console.log(`no file affiliatesData in folder:${config.recipe.folder}`)
                 return
@@ -629,9 +644,10 @@ io.on('connection', async (socket) => {
 
         try {
             metrics.sendMetricsCountOfClients(clients.length)
-            let files = await getLocalFiles(config.recipe.folder)
 
-            let filesInfo = parseFiles(files)
+            let files = await RecipeFiles.getLocalFiles(config.recipe.folder)
+            let filesInfo = RecipeFiles.formatRecipeFiles(files)
+
             if (filesInfo.campaignData.length === 0) {
                 console.log(`no file campaignData in folder:${config.recipe.folder}`)
                 return
@@ -655,9 +671,10 @@ io.on('connection', async (socket) => {
     socket.on('sendFileOffer', async () => {
 
         try {
-            let files = await getLocalFiles(config.recipe.folder)
 
-            let filesInfo = parseFiles(files)
+            let files = await RecipeFiles.getLocalFiles(config.recipe.folder)
+            let filesInfo = RecipeFiles.formatRecipeFiles(files)
+
             if (filesInfo.offerData.length === 0) {
                 console.log(`no file offerData in folder:${config.recipe.folder}`)
                 return
