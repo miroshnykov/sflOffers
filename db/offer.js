@@ -57,7 +57,7 @@ const offerInfo = async () => {
                           ON v.id = o.sfl_vertical_id                                                             
         `)
         await dbMysql.end()
-        // console.log(`\nget offerInfo count: ${result.length}`)
+        console.log(`\nget offerInfo count: ${result.length}`)
         return result
     } catch (e) {
         console.log(e)
