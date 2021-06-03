@@ -63,26 +63,30 @@ const setFileSizeInfo = async () => {
                     size: sizeAffiliates
                 })
         }
-
-        for (const campaignFile of filesInfo.campaignData) {
-            let sizeCampaign = await getFileSize(campaignFile.file)
-            campaignInfo.push(
-                {
-                    index: campaignFile.index,
-                    file: campaignFile.file,
-                    size: sizeCampaign
-                })
+        if (filesInfo['campaignData']){
+            for (const campaignFile of filesInfo.campaignData) {
+                let sizeCampaign = await getFileSize(campaignFile.file)
+                campaignInfo.push(
+                    {
+                        index: campaignFile.index,
+                        file: campaignFile.file,
+                        size: sizeCampaign
+                    })
+            }
         }
 
-        for (const offerFile of filesInfo.offerData) {
-            let sizeOffer = await getFileSize(offerFile.file)
-            offerInfo.push(
-                {
-                    index: offerFile.index,
-                    file: offerFile.file,
-                    size: sizeOffer
-                })
+        if (filesInfo['offerData']){
+            for (const offerFile of filesInfo.offerData) {
+                let sizeOffer = await getFileSize(offerFile.file)
+                offerInfo.push(
+                    {
+                        index: offerFile.index,
+                        file: offerFile.file,
+                        size: sizeOffer
+                    })
+            }
         }
+
 
         response.affiliateWebsitesInfo = affiliateWebsitesInfo
         response.affiliatesInfo = affiliatesInfo
@@ -96,8 +100,8 @@ const setFileSizeInfo = async () => {
 
         fileSizeAffiliateWebsitesInfo = affiliateWebsitesInfo[0].size
         fileSizeAffiliatesInfo = affiliatesInfo[0].size
-        fileSizeOfferInfo = offerInfo[0].size
-        fileSizeCampaignInfo = campaignInfo[0].size
+        fileSizeOfferInfo = offerInfo.length > 0 && offerInfo[0].size || 0
+        fileSizeCampaignInfo = campaignInfo.length > 0 && campaignInfo[0].size || 0
 
 
         let fileSizeInfo = {}
